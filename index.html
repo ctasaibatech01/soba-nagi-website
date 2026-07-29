@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蕎麦切り 凪 | Soba-kiri NAGI — 手繰りたてを、静かな一杯で</title>
+<meta name="description" content="蕎麦切り凪。水と、蕎麦と。観光・遠方のお客様にも安心してご来店いただける和モダンな蕎麦屋です。オンライン予約対応。">
+<meta property="og:title" content="蕎麦切り 凪 | Soba-kiri NAGI">
+<meta property="og:description" content="水と、蕎麦と。静かな一杯をどうぞ。ご予約はオンラインで承ります。">
+<meta property="og:type" content="restaurant">
+<!-- OGP画像：hero-bg.png（料理写真）決定。1200x630pxのOGP専用カットは別途書き出し予定（デザイン設計書 7章参照） -->
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="favicon-32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="favicon-16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="favicon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --color-ink:#201d1a;
+    --color-indigo:#284a6b;
+    --color-vermilion:#a83b2c;
+    --color-washi:#f4efe6;
+    --color-washi-deep:#eae2d3;
+    --color-line:rgba(32,29,26,0.12);
+    --color-ink-soft:rgba(32,29,26,0.64);
+
+    --font-mincho:'Shippori Mincho', serif;
+    --font-gothic:'Zen Kaku Gothic New', sans-serif;
+    --font-latin:'Cormorant Garamond', serif;
+
+    --sp-4:4px; --sp-8:8px; --sp-16:16px; --sp-24:24px; --sp-32:32px;
+    --sp-48:48px; --sp-64:64px; --sp-96:96px; --sp-128:128px;
+
+    --ease-standard:cubic-bezier(0.4,0,0.2,1);
+    --ease-gentle:cubic-bezier(0.25,0.1,0.25,1);
+    --duration-fast:160ms;
+    --duration-base:320ms;
+    --duration-slow:2400ms;
+
+    --max-width:1120px;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--color-washi);
+    color:var(--color-ink);
+    font-family:var(--font-gothic);
+    font-size:16px;
+    line-height:1.8;
+    -webkit-font-smoothing:antialiased;
+  }
+  img,svg{max-width:100%;display:block;}
+  a{color:inherit;text-decoration:none;}
+  ul{list-style:none;margin:0;padding:0;}
+  h1,h2,h3,p{margin:0;}
+  .wrap{max-width:var(--max-width);margin:0 auto;padding:0 20px;}
+  @media(min-width:1024px){ .wrap{padding:0 64px;} }
+
+  .en{
+    display:block;
+    font-family:var(--font-latin);
+    font-style:italic;
+    font-size:0.85em;
+    color:var(--color-ink-soft);
+    margin-top:4px;
+  }
+  .en.inline{display:inline;margin-left:8px;margin-top:0;}
+
+  h2.section-title{
+    font-family:var(--font-mincho);
+    font-size:26px;
+    line-height:1.5;
+    letter-spacing:0.02em;
+  }
+  @media(min-width:1024px){ h2.section-title{font-size:32px;} }
+
+  section{padding:64px 0;}
+  @media(min-width:1024px){ section{padding:112px 0;} }
+
+  /* 和紙テクスチャ（薄いノイズ風グラデーションで代用） */
+  .washi-texture{
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(32,29,26,0.03) 0%, transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(32,29,26,0.025) 0%, transparent 45%);
+  }
+
+  /* 青海波モチーフ（区切り線） */
+  .seigaiha-divider{
+    height:24px;
+    background-image: radial-gradient(circle at 10px -4px, transparent 12px, var(--color-line) 13px, transparent 14px);
+    background-size:24px 24px;
+    background-repeat:repeat-x;
+    opacity:0.14;
+    animation: seigaiha-breath 6s var(--ease-gentle) infinite;
+  }
+  @keyframes seigaiha-breath{
+    0%,100%{opacity:0.08;}
+    50%{opacity:0.14;}
+  }
+
+  /* ===== スクロールリベール ===== */
+  .reveal{
+    opacity:0;
+    transform:translateY(16px);
+    transition:opacity var(--duration-base) var(--ease-standard), transform var(--duration-base) var(--ease-standard);
+  }
+  .reveal.is-visible{
+    opacity:1;
+    transform:translateY(0);
+  }
+
+  /* ===== ヘッダー ===== */
+  header{
+    position:fixed;
+    top:0;left:0;right:0;
+    z-index:100;
+    background:transparent;
+    transition:background-color var(--duration-base) var(--ease-standard), box-shadow var(--duration-base) var(--ease-standard);
+  }
+  header.solid{
+    background:rgba(244,239,230,0.94);
+    box-shadow:0 2px 12px rgba(32,29,26,0.06);
+    backdrop-filter:blur(6px);
+  }
+  header .wrap{
+    display:flex;align-items:center;justify-content:space-between;
+    height:72px;
+  }
+  .brand{
+    font-family:var(--font-mincho);
+    font-size:20px;
+    letter-spacing:0.06em;
+    color:var(--color-ink);
+  }
+  .brand .en{margin:0;font-size:11px;letter-spacing:0.12em;}
+  nav.main-nav{display:none;}
+  @media(min-width:1024px){
+    nav.main-nav{display:flex;gap:28px;font-size:14px;}
+    nav.main-nav a{position:relative;padding:4px 0;}
+    nav.main-nav a::after{
+      content:'';position:absolute;left:0;bottom:0;width:0;height:1px;
+      background:var(--color-indigo);
+      transition:width var(--duration-base) var(--ease-standard);
+    }
+    nav.main-nav a:hover::after{width:100%;}
+  }
+  .header-actions{display:flex;align-items:center;gap:16px;}
+  .lang-toggle{
+    font-size:12px;
+    border:1px solid var(--color-line);
+    border-radius:2px;
+    padding:6px 10px;
+    background:transparent;
+    cursor:pointer;
+    color:var(--color-ink);
+    font-family:var(--font-gothic);
+  }
+
+  /* ===== ボタン ===== */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    font-family:var(--font-gothic);
+    font-weight:500;
+    font-size:15px;
+    padding:14px 28px;
+    border-radius:2px;
+    border:none;
+    cursor:pointer;
+    transition:filter var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
+    white-space:nowrap;
+  }
+  .btn:active{transform:scale(0.98);}
+  .btn-primary{
+    background:var(--color-vermilion);
+    color:var(--color-washi);
+  }
+  .btn-primary:hover{filter:brightness(0.92);}
+  .btn-secondary{
+    background:transparent;
+    color:var(--color-ink);
+    border:1px solid var(--color-line);
+    padding:10px 20px;
+    font-size:13px;
+  }
+  .btn-secondary:hover{border-color:var(--color-ink-soft);}
+  .btn-small{padding:8px 16px;font-size:12px;}
+
+  /* ===== ヒーロー（視覚的主役：案A「料理写真中心」に決定。hero-bg.png使用） ===== */
+  .hero{
+    position:relative;
+    min-height:100svh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    background:
+      radial-gradient(ellipse 34% 42% at 50% 46%, rgba(32,29,26,0.78), rgba(32,29,26,0.5) 55%, rgba(32,29,26,0.34) 100%),
+      url('hero-bg.png') center 32% / cover no-repeat,
+      linear-gradient(135deg, #3a3530 0%, #201d1a 60%, #171512 100%);
+  }
+  /* 水面のゆらぎ（背景要素の微小な translateY 波） */
+  .hero::before{
+    content:'';
+    position:absolute;inset:0;
+    background-image: repeating-linear-gradient(180deg, rgba(255,255,255,0.02) 0px, transparent 2px, transparent 40px);
+    animation: water-ripple var(--duration-slow) var(--ease-gentle) infinite;
+    pointer-events:none;
+  }
+  @keyframes water-ripple{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(6px);}
+  }
+  .hero-content{
+    position:relative;z-index:2;
+    text-align:center;
+    color:var(--color-washi);
+    padding:0 20px;
+    text-shadow:0 1px 4px rgba(0,0,0,0.4);
+  }
+  /* .enクラスの既定色（墨系の暗い色）はヒーロー内では上書きし、親要素の明るい色を継承させる */
+  .hero-content .en{color:inherit;}
+  .hero-eyebrow{
+    font-family:var(--font-latin);
+    font-style:italic;
+    font-size:14px;
+    letter-spacing:0.18em;
+    color:rgba(244,239,230,0.92);
+    margin-bottom:20px;
+  }
+  .hero-title{
+    font-family:var(--font-mincho);
+    font-size:40px;
+    line-height:1.4;
+    letter-spacing:0.04em;
+  }
+  @media(min-width:1024px){ .hero-title{font-size:56px;} }
+  .hero-title .en{color:rgba(244,239,230,0.9);font-size:0.5em;margin-top:12px;}
+  .hero-tagline{
+    margin-top:24px;
+    font-size:15px;
+    color:rgba(244,239,230,0.95);
+  }
+  .hero-meta{
+    margin-top:12px;
+    font-size:13px;
+    color:rgba(244,239,230,0.85);
+    letter-spacing:0.04em;
+  }
+  .hero-meta .badge{
+    display:inline-block;
+    margin-left:8px;
+    padding:2px 8px;
+    border:1px solid var(--color-vermilion);
+    color:#f0b3a4;
+    border-radius:2px;
+    font-size:11px;
+  }
+  .hero-cta{margin-top:40px;}
+  .hero-scroll-cue{
+    position:absolute;bottom:32px;left:50%;transform:translateX(-50%);
+    font-size:11px;color:rgba(244,239,230,0.5);
+    letter-spacing:0.1em;
+  }
+
+  /* ===== 要点バー ===== */
+  .point-bar{
+    background:var(--color-ink);
+    color:var(--color-washi);
+    padding:0;
+  }
+  .point-bar ul{
+    display:flex;
+    overflow-x:auto;
+    gap:0;
+  }
+  .point-bar li{
+    display:flex;align-items:center;gap:8px;
+    padding:14px 20px;
+    font-size:13px;
+    white-space:nowrap;
+    border-right:1px solid rgba(244,239,230,0.12);
+    flex-shrink:0;
+  }
+  .point-bar .icon{
+    width:16px;height:16px;flex-shrink:0;opacity:0.85;
+    fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;
+  }
+  .point-bar .en{color:inherit;}
+
+  /* ===== お知らせ ===== */
+  .news-section{background:var(--color-washi);}
+  .news-list{margin-top:40px;max-width:720px;}
+  .news-item{
+    display:flex;align-items:baseline;gap:20px;
+    padding:16px 0;
+    border-bottom:1px solid var(--color-line);
+    flex-wrap:wrap;
+    font-size:14px;
+  }
+  .news-date{
+    font-family:var(--font-latin);
+    color:var(--color-indigo);
+    font-size:13px;
+    flex-shrink:0;
+    width:88px;
+  }
+
+  /* ===== 物語セクション ===== */
+  .story{background:var(--color-washi);}
+  .story .grid{
+    display:grid;
+    gap:32px;
+  }
+  @media(min-width:1024px){
+    .story .grid{grid-template-columns:1fr 1fr;gap:64px;align-items:center;}
+  }
+  .placeholder-img{
+    position:relative;
+    width:100%;
+    aspect-ratio:4/3;
+    background:linear-gradient(135deg, var(--color-washi-deep), #ded3bd);
+    border:1px dashed var(--color-line);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--color-ink-soft);
+    font-size:12px;
+    text-align:center;
+    padding:16px;
+    overflow:hidden;
+  }
+  .placeholder-img .steam{
+    position:absolute;top:-10px;left:50%;
+    width:2px;height:60px;
+    background:linear-gradient(180deg, transparent, rgba(32,29,26,0.15), transparent);
+    animation: steam-rise 3.2s var(--ease-gentle) infinite;
+    transform-origin:bottom;
+    z-index:2;
+  }
+  .placeholder-img.has-photo{border:none;padding:0;background:none;}
+  .placeholder-img.has-photo > img{
+    position:absolute;inset:0;
+    width:100%;height:100%;
+    object-fit:cover;
+    z-index:0;
+  }
+  @keyframes steam-rise{
+    0%{transform:translateY(0) translateX(0) scaleY(1);opacity:0.3;}
+    50%{transform:translateY(-10px) translateX(4px) scaleY(1.1);opacity:0.5;}
+    100%{transform:translateY(0) translateX(0) scaleY(1);opacity:0.3;}
+  }
+  .story-text h2{margin-bottom:24px;}
+  .story-text p{color:var(--color-ink-soft);margin-bottom:16px;}
+  .story-text p.en{color:var(--color-ink-soft);}
+
+  /* ===== お品書き ===== */
+  .menu-section{background:var(--color-washi-deep);}
+  .menu-grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:32px;
+    margin-top:48px;
+  }
+  @media(min-width:600px){ .menu-grid{grid-template-columns:1fr 1fr;} }
+  @media(min-width:1024px){ .menu-grid{grid-template-columns:repeat(3,1fr);} }
+  .menu-card{
+    position:relative;
+    transition:transform var(--duration-base) var(--ease-standard);
+  }
+  .menu-card .placeholder-img{aspect-ratio:16/9;}
+  .menu-card .placeholder-img.has-photo > img{
+    transition:transform var(--duration-base) var(--ease-standard);
+  }
+  .menu-card:hover{transform:translateY(-4px);}
+  .menu-card:hover .placeholder-img.has-photo{
+    box-shadow:0 4px 20px rgba(32,29,26,0.08);
+  }
+  .menu-card:hover .placeholder-img.has-photo > img{
+    transform:scale(1.045);
+  }
+  .badge-tag{
+    position:absolute;top:8px;right:8px;
+    background:var(--color-washi);
+    border:1px solid var(--color-line);
+    font-size:10px;
+    padding:3px 8px;
+    border-radius:2px;
+    color:var(--color-ink-soft);
+    z-index:2;
+  }
+  .menu-card h3{
+    font-family:var(--font-mincho);
+    font-size:20px;
+    margin-top:16px;
+  }
+  .menu-card .price{
+    font-family:var(--font-latin);
+    color:var(--color-indigo);
+    margin-top:4px;
+    font-size:15px;
+  }
+  .menu-card p.en{margin-top:4px;}
+
+  /* ===== コース ===== */
+  .course-section{background:var(--color-washi);}
+  .course-list{margin-top:40px;}
+  .course-item{
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:20px 0;
+    border-bottom:1px solid var(--color-line);
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .course-item h3{font-family:var(--font-mincho);font-size:18px;}
+  .course-item .price{font-family:var(--font-latin);color:var(--color-indigo);font-size:16px;white-space:nowrap;}
+
+  /* ===== ギャラリー ===== */
+  .gallery-section{background:var(--color-washi-deep);}
+  .gallery-scroll{
+    display:flex;
+    gap:16px;
+    overflow-x:auto;
+    margin-top:40px;
+    padding-bottom:16px;
+  }
+  .gallery-scroll .placeholder-img{
+    flex:0 0 auto;
+    width:260px;
+    aspect-ratio:3/4;
+  }
+  .gallery-scroll .placeholder-img:nth-child(even){aspect-ratio:4/3;width:320px;}
+
+  /* ===== アクセス ===== */
+  .access-section{background:var(--color-washi);}
+  .access-grid{
+    display:grid;
+    gap:32px;
+    margin-top:40px;
+  }
+  @media(min-width:1024px){ .access-grid{grid-template-columns:1.3fr 1fr;} }
+  .map-embed{
+    aspect-ratio:4/3;
+    overflow:hidden;
+    border:1px solid var(--color-line);
+  }
+  .map-embed iframe{width:100%;height:100%;border:0;display:block;}
+  .map-note{margin-top:8px;font-size:11px;color:var(--color-ink-soft);opacity:0.8;}
+  .access-info dl{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:14px;}
+  .access-info dt{font-weight:700;color:var(--color-indigo);width:100%;margin-top:16px;}
+  .access-info dt:first-child{margin-top:0;}
+  .access-info dd{margin:0;color:var(--color-ink-soft);}
+
+  /* ===== 現在の天気（Open-Meteo API） ===== */
+  .weather-widget{
+    margin-top:24px;
+    padding-top:20px;
+    border-top:1px solid var(--color-line);
+    display:flex;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .weather-icon{width:32px;height:32px;flex-shrink:0;color:var(--color-indigo);}
+  .weather-icon svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+  .weather-details{display:flex;flex-direction:column;gap:2px;}
+  .weather-temp{font-family:var(--font-latin);font-size:24px;color:var(--color-ink);}
+  .weather-desc{font-size:13px;color:var(--color-ink-soft);}
+  .weather-note{width:100%;margin-top:4px;font-size:11px;color:var(--color-ink-soft);opacity:0.8;}
+
+  /* ===== FAQ ===== */
+  .faq-section{background:var(--color-washi-deep);}
+  .faq-list{max-width:720px;margin:40px auto 0;}
+  .faq-item{border-bottom:1px solid var(--color-line);}
+  .faq-q{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:20px 4px;
+    cursor:pointer;
+    font-size:15px;
+    font-weight:500;
+    gap:16px;
+  }
+  .faq-q .icon-toggle{
+    flex-shrink:0;
+    width:20px;height:20px;
+    position:relative;
+  }
+  .faq-q .icon-toggle::before,.faq-q .icon-toggle::after{
+    content:'';position:absolute;background:var(--color-ink);
+    transition:transform var(--duration-base) var(--ease-standard);
+  }
+  .faq-q .icon-toggle::before{left:0;top:9px;width:20px;height:1.5px;}
+  .faq-q .icon-toggle::after{left:9px;top:0;width:1.5px;height:20px;}
+  .faq-item.open .icon-toggle::after{transform:rotate(90deg) translateX(0);opacity:0;}
+  .faq-a{
+    max-height:0;
+    opacity:0;
+    overflow:hidden;
+    transition:max-height var(--duration-base) var(--ease-standard), opacity var(--duration-base) var(--ease-standard);
+    font-size:14px;
+    color:var(--color-ink-soft);
+    padding:0 4px;
+  }
+  .faq-item.open .faq-a{
+    max-height:400px;
+    opacity:1;
+    padding-bottom:20px;
+  }
+
+  /* ===== ご予約 ===== */
+  .reserve-section{
+    background:var(--color-ink);
+    color:var(--color-washi);
+    text-align:center;
+  }
+  .reserve-section h2{color:var(--color-washi);}
+  .reserve-section .en{color:rgba(244,239,230,0.6);}
+  .reserve-main{margin-top:40px;}
+  .reserve-note{
+    margin-top:16px;
+    font-size:12px;
+    color:rgba(244,239,230,0.5);
+  }
+  .reserve-secondary{
+    margin-top:48px;
+    display:flex;
+    justify-content:center;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .reserve-secondary .btn-secondary{
+    color:var(--color-washi);
+    border-color:rgba(244,239,230,0.25);
+  }
+
+  /* ===== フッター ===== */
+  footer{
+    background:var(--color-ink);
+    color:rgba(244,239,230,0.6);
+    padding:48px 0 96px;
+    font-size:12px;
+    border-top:1px solid rgba(244,239,230,0.1);
+  }
+  @media(min-width:1024px){ footer{padding-bottom:48px;} }
+  footer .wrap{display:flex;flex-direction:column;gap:16px;}
+  footer .footer-links{display:flex;gap:16px;}
+  footer .en{color:inherit;}
+
+  /* ===== スマホ追従予約バー ===== */
+  .sticky-reserve{
+    position:fixed;
+    left:0;right:0;bottom:0;
+    z-index:90;
+    background:var(--color-washi);
+    border-top:1px solid var(--color-line);
+    padding:10px 16px;
+    display:flex;
+    box-shadow:0 -4px 20px rgba(32,29,26,0.08);
+    transition:transform var(--duration-base) var(--ease-standard);
+  }
+  .sticky-reserve.hidden{transform:translateY(100%);}
+  .sticky-reserve .btn-primary{width:100%;}
+  @media(min-width:1024px){ .sticky-reserve{display:none;} }
+
+  /* ===== 言語切替：EN表示制御 ===== */
+  body.lang-en .ja{display:none;}
+  body.lang-en .en{display:block;color:inherit;font-style:normal;font-family:var(--font-gothic);}
+  body.lang-en .en.inline{display:inline;}
+  body:not(.lang-en) .en{display:none;}
+
+  /* ===== アクセシビリティ：フォーカス表示 ===== */
+  a:focus-visible, button:focus-visible{
+    outline:2px solid var(--color-indigo);
+    outline-offset:2px;
+  }
+
+  /* ===== reduced motion ===== */
+  @media (prefers-reduced-motion: reduce){
+    .seigaiha-divider, .hero::before, .placeholder-img .steam{animation:none !important;}
+    .reveal{transition:opacity var(--duration-base) linear;transform:none !important;}
+    html{scroll-behavior:auto;}
+    .menu-card, .menu-card .placeholder-img.has-photo > img{transition:none !important;}
+    .menu-card:hover{transform:none !important;}
+    .menu-card:hover .placeholder-img.has-photo > img{transform:none !important;}
+  }
+  body.reduce-motion .seigaiha-divider,
+  body.reduce-motion .hero::before,
+  body.reduce-motion .placeholder-img .steam{animation:none !important;}
+  body.reduce-motion .reveal{transform:none !important;}
+  body.reduce-motion .menu-card,
+  body.reduce-motion .menu-card .placeholder-img.has-photo > img{transition:none !important;}
+  body.reduce-motion .menu-card:hover{transform:none !important;}
+  body.reduce-motion .menu-card:hover .placeholder-img.has-photo > img{transform:none !important;}
+</style>
+</head>
+<body>
+
+<!-- ===== ヘッダー ===== -->
+<header id="site-header">
+  <div class="wrap">
+    <div class="brand">
+      蕎麦切り 凪
+      <span class="en">Soba-kiri NAGI</span>
+    </div>
+    <nav class="main-nav">
+      <a href="#news"><span class="ja">お知らせ</span><span class="en">News</span></a>
+      <a href="#story"><span class="ja">物語</span><span class="en">Story</span></a>
+      <a href="#menu"><span class="ja">お品書き</span><span class="en">Menu</span></a>
+      <a href="#gallery"><span class="ja">ギャラリー</span><span class="en">Gallery</span></a>
+      <a href="#access"><span class="ja">アクセス</span><span class="en">Access</span></a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="header-actions">
+      <button class="lang-toggle" id="lang-toggle" aria-label="Switch language">JP / EN</button>
+      <a href="#reserve" class="btn btn-primary btn-small"><span class="ja">ご予約</span><span class="en">Reserve</span></a>
+    </div>
+  </div>
+</header>
+
+<!-- ===== 1. ヒーロー（視覚的主役：案A「料理写真中心」で確定、hero-bg.png使用） ===== -->
+<section class="hero" role="img" aria-label="ざるに盛られた手打ち蕎麦">
+  <div class="hero-content">
+    <p class="hero-eyebrow">Soba-kiri NAGI</p>
+    <h1 class="hero-title">
+      <span class="ja">打ちたての一杯を、まっすぐに。</span>
+      <span class="en">Freshly cut, served straight to you.</span>
+    </h1>
+    <p class="hero-tagline">
+      <span class="ja">一杯ごとに、蕎麦と向き合う店。</span>
+      <span class="en">A shop devoted to one bowl at a time.</span>
+    </p>
+    <p class="hero-meta">
+      <span class="ja">〇〇エリア</span><span class="en inline">Area name</span>
+      <span class="badge"><span class="ja">要予約</span><span class="en">Reservation required</span></span>
+    </p>
+    <div class="hero-cta">
+      <a href="#reserve" class="btn btn-primary"><span class="ja">オンラインで予約する</span><span class="en">Reserve Online</span></a>
+    </div>
+  </div>
+  <div class="hero-scroll-cue">SCROLL</div>
+</section>
+
+<!-- ===== 2. 要点バー ===== -->
+<div class="point-bar">
+  <ul>
+    <li>
+      <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="12" rx="4"/><path d="M4 11h16"/><path d="M8 19l-2 2"/><path d="M16 19l2 2"/></svg>
+      <span class="ja">〇〇駅 徒歩5分</span><span class="en inline">5 min from Station</span>
+    </li>
+    <li>
+      <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+      <span class="ja">11:30–14:30 / 17:30–21:00</span>
+    </li>
+    <li>
+      <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 7l3.5 5.5L15.5 7"/><path d="M12 12.5v5"/><path d="M9.5 14h5"/><path d="M9.5 16h5"/></svg>
+      <span class="ja">予算目安 ¥3,000〜</span><span class="en inline">from ¥3,000</span>
+    </li>
+    <li>
+      <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.5 4 5.8 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.8-4-9s1.5-6.5 4-9z"/></svg>
+      <span class="ja">英語メニューあり</span><span class="en inline">English menu available</span>
+    </li>
+    <li>
+      <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17"/><path d="M8 3v4M16 3v4"/></svg>
+      <span class="ja">要予約</span><span class="en inline">Reservation recommended</span>
+    </li>
+  </ul>
+</div>
+<div class="seigaiha-divider" aria-hidden="true"></div>
+
+<!-- ===== 2.5. お知らせ ===== -->
+<section class="news-section" id="news">
+  <div class="wrap">
+    <h2 class="section-title reveal">
+      <span class="ja">お知らせ</span>
+      <span class="en">News</span>
+    </h2>
+    <div class="news-list">
+      <div class="news-item reveal">
+        <span class="news-date">2026.07.01</span>
+        <span class="ja">［お知らせ差し替え用］季節の変わりそばを始めました</span><span class="en inline">Seasonal soba now available</span>
+      </div>
+      <div class="news-item reveal">
+        <span class="news-date">2026.06.15</span>
+        <span class="ja">［お知らせ差し替え用］夏季休業のご案内</span><span class="en inline">Notice of summer closure</span>
+      </div>
+      <div class="news-item reveal">
+        <span class="news-date">2026.05.20</span>
+        <span class="ja">［お知らせ差し替え用］オンライン予約を開始しました</span><span class="en inline">Online reservations now open</span>
+      </div>
+    </div>
+    <p style="margin-top:24px;font-size:12px;color:var(--color-ink-soft);">
+      <span class="ja">※ お知らせの内容・日付はサンプルです。実際の最新情報に差し替えてください。</span>
+      <span class="en">News items are placeholders. Please replace with real updates.</span>
+    </p>
+  </div>
+</section>
+
+<!-- ===== 3. 物語 ===== -->
+<section class="story washi-texture" id="story">
+  <div class="wrap">
+    <div class="grid">
+      <div class="reveal placeholder-img has-photo">
+        <img src="story-craftsmanship.png.png" alt="職人が手打ちで蕎麦を仕上げる様子 / A craftsman preparing handmade soba">
+      </div>
+      <div class="reveal story-text">
+        <h2 class="section-title">
+          <span class="ja">水と、蕎麦と。</span>
+          <span class="en">Water, and soba.</span>
+        </h2>
+        <p>
+          <span class="ja">一杯の蕎麦の向こうに、水と土地の記憶がある。凪では、その静けさを守るために、足し算ではなく引き算で店をつくってきました。</span>
+        </p>
+        <p class="en">Behind every bowl of soba lies the memory of water and land. At NAGI, we build with subtraction, not addition, to protect that quiet.</p>
+        <p>
+          <span class="ja">遠方からいらっしゃるお客様にこそ、この静けさを味わっていただきたいと考えています。</span>
+        </p>
+        <p class="en">We hope guests traveling from afar can experience this stillness most of all.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 4. お品書き ===== -->
+<section class="menu-section washi-texture" id="menu">
+  <div class="wrap">
+    <h2 class="section-title reveal">
+      <span class="ja">お品書き</span>
+      <span class="en">Menu</span>
+    </h2>
+    <div class="menu-grid">
+      <div class="menu-card reveal">
+        <div class="placeholder-img has-photo">
+          <div class="steam" aria-hidden="true"></div>
+          <img src="menu-seiro.png.png" alt="せいろ蕎麦 / Seiro soba">
+        </div>
+        <span class="badge-tag"><span class="ja">ベジ対応可</span><span class="en">Vegetarian option</span></span>
+        <h3><span class="ja">せいろ</span></h3>
+        <p class="price">¥1,200</p>
+        <p class="en">Seiro Soba (cold, served with dipping sauce)</p>
+      </div>
+      <div class="menu-card reveal">
+        <div class="placeholder-img has-photo">
+          <div class="steam" aria-hidden="true"></div>
+          <img src="menu-tenseiro.png.png" alt="天せいろ蕎麦 / Tenseiro soba with tempura">
+        </div>
+        <span class="badge-tag"><span class="ja">要確認：卵・小麦</span><span class="en">Contains egg, wheat</span></span>
+        <h3><span class="ja">天せいろ</span></h3>
+        <p class="price">¥2,300</p>
+        <p class="en">Tenseiro (soba with tempura)</p>
+      </div>
+    </div>
+    <p style="margin-top:24px;font-size:12px;color:var(--color-ink-soft);">
+      <span class="ja">※ 価格・メニュー内容は実店舗の情報確定後に差し替えてください。</span>
+      <span class="en">Prices and items are placeholders pending final confirmation.</span>
+    </p>
+  </div>
+</section>
+
+<!-- ===== 5. コース ===== -->
+<section class="course-section" id="course">
+  <div class="wrap">
+    <h2 class="section-title reveal">
+      <span class="ja">コース</span>
+      <span class="en">Course Menu</span>
+    </h2>
+    <div class="course-list">
+      <div class="course-item reveal">
+        <div>
+          <h3><span class="ja">凪コース</span></h3>
+          <p class="en">NAGI Course · 5 dishes</p>
+        </div>
+        <p class="price">¥6,000</p>
+      </div>
+      <div class="course-item reveal">
+        <div>
+          <h3><span class="ja">水音コース</span></h3>
+          <p class="en">Mizuoto Course · 7 dishes, with sake pairing</p>
+        </div>
+        <p class="price">¥9,500</p>
+      </div>
+    </div>
+    <p style="margin-top:24px;font-size:12px;color:var(--color-ink-soft);">
+      <span class="ja">※ 接待・法要利用は2名様より要予約。</span>
+      <span class="en">Reservation required for parties of 2 or more.</span>
+    </p>
+  </div>
+</section>
+
+<!-- ===== 6. 店内・体験ギャラリー ===== -->
+<section class="gallery-section washi-texture" id="gallery">
+  <div class="wrap">
+    <h2 class="section-title reveal">
+      <span class="ja">店内・体験ギャラリー</span>
+      <span class="en">Gallery</span>
+    </h2>
+    <div class="gallery-scroll">
+      <div class="placeholder-img has-photo reveal"><img src="gallery-counter.png.png" alt="カウンター席の様子 / Counter seating"></div>
+      <div class="placeholder-img has-photo reveal"><img src="gallery-noren.png.png" alt="店先の暖簾 / Noren entrance curtain"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 7. アクセス ===== -->
+<section class="access-section" id="access">
+  <div class="wrap">
+    <h2 class="section-title reveal">
+      <span class="ja">アクセス</span>
+      <span class="en">Access</span>
+    </h2>
+    <div class="access-grid">
+      <div class="reveal">
+        <div class="map-embed">
+          <iframe src="https://www.google.com/maps?q=東京駅&output=embed" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade" title="地図（仮：東京駅）"></iframe>
+        </div>
+        <p class="map-note">
+          <span class="ja">※ 現在は仮の地点（東京駅）の地図です。住所確定後、店舗所在地の地図に切り替えます。</span>
+          <span class="en">Map shown for a placeholder location (Tokyo Station); will switch to the actual address once confirmed.</span>
+        </p>
+      </div>
+      <div class="access-info reveal">
+        <dl>
+          <dt><span class="ja">住所</span><span class="en">Address</span></dt>
+          <dd><span class="ja">〇〇県〇〇市〇〇 1-2-3（住所確定後に記載）</span></dd>
+          <dt><span class="ja">最寄り駅</span><span class="en">Nearest Station</span></dt>
+          <dd><span class="ja">〇〇駅 西口より徒歩5分</span><span class="en"> · 5 min walk from West Exit</span></dd>
+          <dt><span class="ja">目印</span><span class="en">Landmark</span></dt>
+          <dd><span class="ja">〇〇通り沿い、青い暖簾が目印です</span></dd>
+          <dt><span class="ja">営業時間</span><span class="en">Hours</span></dt>
+          <dd>11:30–14:30 / 17:30–21:00</dd>
+          <dt><span class="ja">定休日</span><span class="en">Closed</span></dt>
+          <dd><span class="ja">水曜日（定休日確定後に記載）</span></dd>
+        </dl>
+
+        <div class="weather-widget" id="weather-widget" aria-live="polite">
+          <div class="weather-icon" id="weather-icon" aria-hidden="true"></div>
+          <div class="weather-details">
+            <p class="weather-temp"><span id="weather-temp">--</span>℃</p>
+            <p class="weather-desc">
+              <span class="ja" id="weather-desc-ja">読み込み中…</span>
+              <span class="en" id="weather-desc-en">Loading…</span>
+            </p>
+          </div>
+          <p class="weather-note">
+            <span class="ja">※ 現在は仮の地点（東京駅付近）の天気です。住所確定後、店舗所在地の天気に切り替えます。</span>
+            <span class="en">Weather shown for a placeholder location (near Tokyo Station); will switch to the actual address once confirmed.</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 8. 訪問前のご案内（FAQ） ===== -->
+<section class="faq-section washi-texture" id="faq">
+  <div class="wrap">
+    <h2 class="section-title reveal" style="text-align:center;">
+      <span class="ja">訪問前のご案内</span>
+      <span class="en">Before You Visit</span>
+    </h2>
+    <div class="faq-list">
+      <div class="faq-item reveal">
+        <div class="faq-q"><span><span class="ja">予約は必要ですか？</span><span class="en">Is a reservation required?</span></span><span class="icon-toggle" aria-hidden="true"></span></div>
+        <div class="faq-a">
+          <p><span class="ja">満席になることが多いため、事前のご予約をおすすめしております。</span><span class="en">We recommend booking in advance, as we are often full.</span></p>
+        </div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q"><span><span class="ja">当日でも入れますか？</span><span class="en">Can I walk in without a reservation?</span></span><span class="icon-toggle" aria-hidden="true"></span></div>
+        <div class="faq-a">
+          <p><span class="ja">空席があればご案内可能です。オンライン予約状況をご確認ください。</span><span class="en">Walk-ins are welcome if seats are available. Please check online availability.</span></p>
+        </div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q"><span><span class="ja">クレジットカードは使えますか？</span><span class="en">Do you accept credit cards?</span></span><span class="icon-toggle" aria-hidden="true"></span></div>
+        <div class="faq-a">
+          <p><span class="ja">主要国際ブランドのカードがご利用いただけます。</span><span class="en">Major international credit cards are accepted.</span></p>
+        </div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q"><span><span class="ja">英語は通じますか？</span><span class="en">Is English spoken?</span></span><span class="icon-toggle" aria-hidden="true"></span></div>
+        <div class="faq-a">
+          <p><span class="ja">簡単な英語対応と英語メニューをご用意しております。</span><span class="en">Basic English support and an English menu are available.</span></p>
+        </div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q"><span><span class="ja">アレルギー対応はできますか？</span><span class="en">Can you accommodate allergies?</span></span><span class="icon-toggle" aria-hidden="true"></span></div>
+        <div class="faq-a">
+          <p><span class="ja">ご予約時にお申し出いただければ、可能な範囲で対応いたします。</span><span class="en">Please inform us at the time of booking, and we will accommodate where possible.</span></p>
+        </div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q"><span><span class="ja">食事にどのくらい時間がかかりますか？</span><span class="en">How long does a meal typically take?</span></span><span class="icon-toggle" aria-hidden="true"></span></div>
+        <div class="faq-a">
+          <p><span class="ja">目安として60〜90分程度です。コースの場合はやや長くなります。</span><span class="en">Approximately 60–90 minutes; course meals may take longer.</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 9. ご予約 ===== -->
+<section class="reserve-section" id="reserve">
+  <div class="wrap">
+    <h2 class="section-title reveal">
+      <span class="ja">ご予約</span>
+      <span class="en">Reservation</span>
+    </h2>
+    <p class="reveal" style="margin-top:16px;color:rgba(244,239,230,0.75);">
+      <span class="ja">多言語対応・海外カード対応のオンライン予約システムです。</span>
+      <span class="en">Multilingual online booking with international card support.</span>
+    </p>
+    <div class="reserve-main reveal">
+      <!-- TableCheck契約後、下記リンクを予約ページURLに差し替え -->
+      <a href="#" class="btn btn-primary"><span class="ja">オンラインで予約する</span><span class="en">Reserve Online</span></a>
+      <p class="reserve-note">
+        <span class="ja">※ 予約システム（TableCheck）契約後、こちらに埋め込み予定</span>
+        <span class="en">Booking widget to be embedded after contract</span>
+      </p>
+    </div>
+    <div class="reserve-secondary reveal">
+      <a href="tel:+81000000000" class="btn btn-secondary"><span class="ja">お電話でのご予約</span><span class="en">Call to Reserve</span></a>
+      <a href="#" class="btn btn-secondary"><span class="ja">LINEでのご相談</span><span class="en">LINE Inquiry</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== フッター ===== -->
+<footer>
+  <div class="wrap">
+    <div class="brand" style="color:var(--color-washi);">蕎麦切り 凪 <span class="en" style="color:rgba(244,239,230,0.5);">Soba-kiri NAGI</span></div>
+    <p><span class="ja">〇〇県〇〇市〇〇 1-2-3　TEL: 000-0000-0000</span></p>
+    <div class="footer-links">
+      <a href="#" aria-label="Instagram"><span class="ja">Instagram</span></a>
+      <a href="#" aria-label="LINE">LINE</a>
+      <a href="#reserve"><span class="ja">オンライン予約</span><span class="en">Reserve Online</span></a>
+    </div>
+    <p style="opacity:0.5;">&copy; 2026 Soba-kiri NAGI. 本サイトは実演用見本です。</p>
+  </div>
+</footer>
+
+<!-- ===== 10. スマホ追従予約バー ===== -->
+<div class="sticky-reserve" id="sticky-reserve">
+  <a href="#reserve" class="btn btn-primary"><span class="ja">ご予約はこちら</span><span class="en">Reserve Now</span></a>
+</div>
+
+<script>
+(function(){
+  // 言語切替
+  var langBtn = document.getElementById('lang-toggle');
+  langBtn.addEventListener('click', function(){
+    document.body.classList.toggle('lang-en');
+  });
+
+  // ヘッダー：スクロールでソリッド背景に切替
+  var header = document.getElementById('site-header');
+  function onScrollHeader(){
+    if(window.scrollY > 40){ header.classList.add('solid'); }
+    else{ header.classList.remove('solid'); }
+  }
+  window.addEventListener('scroll', onScrollHeader, {passive:true});
+  onScrollHeader();
+
+  // スクロールリベール
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduceMotion){ document.body.classList.add('reduce-motion'); }
+
+  var revealEls = document.querySelectorAll('.reveal');
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry, i){
+        if(entry.isIntersecting){
+          setTimeout(function(){ entry.target.classList.add('is-visible'); }, reduceMotion ? 0 : (i % 4) * 60);
+          io.unobserve(entry.target);
+        }
+      });
+    }, {threshold:0.15});
+    revealEls.forEach(function(el){ io.observe(el); });
+  } else {
+    revealEls.forEach(function(el){ el.classList.add('is-visible'); });
+  }
+
+  // ヒーロー表示順アニメーション（文字→ボタン→要点バー）
+  var heroEls = document.querySelectorAll('.hero-content > *');
+  heroEls.forEach(function(el, i){
+    el.style.opacity = 0;
+    el.style.transform = 'translateY(12px)';
+    el.style.transition = 'opacity 400ms var(--ease-standard), transform 400ms var(--ease-standard)';
+    setTimeout(function(){
+      el.style.opacity = 1;
+      el.style.transform = 'translateY(0)';
+    }, 120 * i + 100);
+  });
+
+  // FAQアコーディオン（複数同時展開可）
+  document.querySelectorAll('.faq-item').forEach(function(item){
+    item.querySelector('.faq-q').addEventListener('click', function(){
+      item.classList.toggle('open');
+    });
+  });
+
+  // スマホ追従予約バー：フッター手前で非表示
+  var stickyBar = document.getElementById('sticky-reserve');
+  var footerEl = document.querySelector('footer');
+  function onScrollSticky(){
+    var footerTop = footerEl.getBoundingClientRect().top;
+    if(footerTop < window.innerHeight){
+      stickyBar.classList.add('hidden');
+    } else {
+      stickyBar.classList.remove('hidden');
+    }
+  }
+  window.addEventListener('scroll', onScrollSticky, {passive:true});
+  window.addEventListener('resize', onScrollSticky);
+  onScrollSticky();
+})();
+
+// ===== 現在の天気（Open-Meteo API） =====
+(function(){
+  // 仮座標：東京駅付近。住所確定後、実際の店舗所在地の緯度経度に差し替えてください。
+  var WEATHER_LAT = 35.6812;
+  var WEATHER_LON = 139.7671;
+
+  var weatherCodeMap = {
+    0:{ja:'快晴',en:'Clear sky',icon:'sun'},
+    1:{ja:'ほぼ晴れ',en:'Mainly clear',icon:'sun-cloud'},
+    2:{ja:'晴れ時々曇り',en:'Partly cloudy',icon:'sun-cloud'},
+    3:{ja:'曇り',en:'Overcast',icon:'cloud'},
+    45:{ja:'霧',en:'Fog',icon:'fog'},
+    48:{ja:'霧氷',en:'Depositing rime fog',icon:'fog'},
+    51:{ja:'霧雨（弱い）',en:'Light drizzle',icon:'rain'},
+    53:{ja:'霧雨',en:'Drizzle',icon:'rain'},
+    55:{ja:'霧雨（強い）',en:'Dense drizzle',icon:'rain'},
+    56:{ja:'着氷性の霧雨（弱い）',en:'Light freezing drizzle',icon:'rain'},
+    57:{ja:'着氷性の霧雨',en:'Freezing drizzle',icon:'rain'},
+    61:{ja:'雨（弱い）',en:'Slight rain',icon:'rain'},
+    63:{ja:'雨',en:'Rain',icon:'rain'},
+    65:{ja:'雨（強い）',en:'Heavy rain',icon:'rain'},
+    66:{ja:'着氷性の雨（弱い）',en:'Light freezing rain',icon:'rain'},
+    67:{ja:'着氷性の雨',en:'Freezing rain',icon:'rain'},
+    71:{ja:'雪（弱い）',en:'Slight snow fall',icon:'snow'},
+    73:{ja:'雪',en:'Snow fall',icon:'snow'},
+    75:{ja:'雪（強い）',en:'Heavy snow fall',icon:'snow'},
+    77:{ja:'霧雪',en:'Snow grains',icon:'snow'},
+    80:{ja:'にわか雨（弱い）',en:'Slight rain showers',icon:'rain'},
+    81:{ja:'にわか雨',en:'Rain showers',icon:'rain'},
+    82:{ja:'にわか雨（激しい）',en:'Violent rain showers',icon:'rain'},
+    85:{ja:'にわか雪（弱い）',en:'Slight snow showers',icon:'snow'},
+    86:{ja:'にわか雪',en:'Snow showers',icon:'snow'},
+    95:{ja:'雷雨',en:'Thunderstorm',icon:'thunder'},
+    96:{ja:'雷雨（ひょうを伴う、弱い）',en:'Thunderstorm with slight hail',icon:'thunder'},
+    99:{ja:'雷雨（ひょうを伴う、強い）',en:'Thunderstorm with heavy hail',icon:'thunder'}
+  };
+
+  var iconPaths = {
+    sun:'<circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v3M12 18.5v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2.5 12h3M18.5 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+    'sun-cloud':'<path d="M7 2v1.4M3.8 3.8l1 1M2 6.8h1.4"/><circle cx="7" cy="6" r="2.5"/><path d="M6.5 19h11a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 8 12.5"/>',
+    cloud:'<path d="M6.5 18h11a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 7.2 11.5 4 4 0 0 0 6.5 18z"/>',
+    fog:'<path d="M4 8.5h13M3 12h16M4 15.5h13"/><path d="M17 8.5a3 3 0 1 0-5.6-1.4"/>',
+    rain:'<path d="M6.5 14h11a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 7.2 7.5 4 4 0 0 0 6.5 14z"/><path d="M8 17.5l-1 2.5M12.5 17.5l-1 2.5M17 17.5l-1 2.5"/>',
+    snow:'<path d="M6.5 14h11a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 7.2 7.5 4 4 0 0 0 6.5 14z"/><path d="M9 18v3M9 18l-1.6 1M9 18l1.6 1M15 18v3M15 18l-1.6 1M15 18l1.6 1"/>',
+    thunder:'<path d="M6.5 13h11a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 7.2 6.5 4 4 0 0 0 6.5 13z"/><path d="M13 13l-3 5h3l-2 4"/>'
+  };
+
+  function renderWeather(temp, code){
+    var info = weatherCodeMap[code] || {ja:'情報取得中', en:'Unknown', icon:'cloud'};
+    var iconEl = document.getElementById('weather-icon');
+    var tempEl = document.getElementById('weather-temp');
+    var descJa = document.getElementById('weather-desc-ja');
+    var descEn = document.getElementById('weather-desc-en');
+    if(iconEl){ iconEl.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (iconPaths[info.icon] || iconPaths.cloud) + '</svg>'; }
+    if(tempEl){ tempEl.textContent = Math.round(temp); }
+    if(descJa){ descJa.textContent = info.ja; }
+    if(descEn){ descEn.textContent = info.en; }
+  }
+
+  function showWeatherError(){
+    var descJa = document.getElementById('weather-desc-ja');
+    var descEn = document.getElementById('weather-desc-en');
+    if(descJa){ descJa.textContent = '天気情報を取得できませんでした'; }
+    if(descEn){ descEn.textContent = 'Weather data unavailable'; }
+  }
+
+  var weatherWidget = document.getElementById('weather-widget');
+  if(weatherWidget){
+    var weatherUrl = 'https://api.open-meteo.com/v1/forecast?latitude=' + WEATHER_LAT + '&longitude=' + WEATHER_LON + '&current=temperature_2m,weather_code&timezone=Asia%2FTokyo';
+    fetch(weatherUrl)
+      .then(function(res){
+        if(!res.ok){ throw new Error('network error'); }
+        return res.json();
+      })
+      .then(function(data){
+        if(data && data.current){
+          renderWeather(data.current.temperature_2m, data.current.weather_code);
+        } else {
+          showWeatherError();
+        }
+      })
+      .catch(function(){
+        showWeatherError();
+      });
+  }
+})();
+</script>
+
+</body>
+</html>
