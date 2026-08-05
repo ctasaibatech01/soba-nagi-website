@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ご予約を受け付けました | 蕎麦切り 凪 | Soba-kiri NAGI</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="favicon-32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="favicon-16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="favicon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --color-ink:#201d1a;
+    --color-indigo:#284a6b;
+    --color-vermilion:#a83b2c;
+    --color-washi:#f4efe6;
+    --color-washi-deep:#eae2d3;
+    --color-line:rgba(32,29,26,0.12);
+    --color-ink-soft:rgba(32,29,26,0.64);
+
+    --font-mincho:'Shippori Mincho', serif;
+    --font-gothic:'Zen Kaku Gothic New', sans-serif;
+    --font-latin:'Cormorant Garamond', serif;
+
+    --sp-16:16px; --sp-24:24px; --sp-32:32px; --sp-48:48px; --sp-64:64px;
+
+    --ease-standard:cubic-bezier(0.4,0,0.2,1);
+    --duration-fast:160ms;
+    --duration-base:320ms;
+
+    --max-width:1120px;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--color-washi);
+    color:var(--color-ink);
+    font-family:var(--font-gothic);
+    font-size:16px;
+    line-height:1.8;
+    -webkit-font-smoothing:antialiased;
+    display:flex;
+    flex-direction:column;
+    min-height:100svh;
+  }
+  a{color:inherit;text-decoration:none;}
+  ul{list-style:none;margin:0;padding:0;}
+  h1,h2,p{margin:0;}
+  .wrap{max-width:var(--max-width);margin:0 auto;padding:0 20px;}
+  @media(min-width:1024px){ .wrap{padding:0 64px;} }
+
+  .en{
+    display:block;
+    font-family:var(--font-latin);
+    font-style:italic;
+    font-size:0.85em;
+    color:var(--color-ink-soft);
+    margin-top:4px;
+  }
+  .en.inline{display:inline;margin-left:8px;margin-top:0;}
+
+  /* ===== 言語切替 ===== */
+  body.lang-en .ja{display:none;}
+  body.lang-en .en{display:block;color:inherit;font-style:normal;font-family:var(--font-gothic);}
+  body.lang-en .en.inline{display:inline;}
+  body:not(.lang-en) .en{display:none;}
+
+  /* ===== ボタン ===== */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    font-family:var(--font-gothic);
+    font-weight:500;
+    font-size:15px;
+    padding:14px 28px;
+    border-radius:2px;
+    border:none;
+    cursor:pointer;
+    transition:filter var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
+    white-space:nowrap;
+  }
+  .btn:active{transform:scale(0.98);}
+  .btn-primary{background:var(--color-vermilion);color:var(--color-washi);}
+  .btn-primary:hover{filter:brightness(0.92);}
+  .btn-secondary{
+    background:transparent;color:var(--color-ink);
+    border:1px solid var(--color-line);
+    padding:10px 20px;font-size:13px;
+  }
+  .btn-secondary:hover{border-color:var(--color-ink-soft);}
+
+  /* ===== ヘッダー ===== */
+  header{
+    background:rgba(244,239,230,0.94);
+    box-shadow:0 2px 12px rgba(32,29,26,0.06);
+    backdrop-filter:blur(6px);
+  }
+  header .wrap{
+    display:flex;align-items:center;justify-content:space-between;
+    height:72px;
+  }
+  .brand{
+    font-family:var(--font-mincho);
+    font-size:20px;
+    letter-spacing:0.06em;
+    color:var(--color-ink);
+  }
+  .brand .en{margin:0;font-size:11px;letter-spacing:0.12em;}
+  .lang-toggle{
+    background:transparent;border:1px solid var(--color-line);
+    color:var(--color-ink);
+    font-family:var(--font-latin);
+    font-size:12px;letter-spacing:0.08em;
+    padding:6px 12px;border-radius:2px;cursor:pointer;
+  }
+  .lang-toggle:hover{border-color:var(--color-ink-soft);}
+  .lang-toggle:focus-visible,a:focus-visible,button:focus-visible,input:focus-visible{
+    outline:2px solid var(--color-indigo);outline-offset:2px;
+  }
+
+  /* ===== サンクスセクション ===== */
+  main{flex:1;display:flex;align-items:center;}
+  .thanks-section{
+    width:100%;
+    background:var(--color-ink);
+    color:var(--color-washi);
+    text-align:center;
+    padding:96px 0;
+  }
+  .thanks-icon{
+    width:56px;height:56px;
+    margin:0 auto 24px;
+    border:1.5px solid rgba(244,239,230,0.5);
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .thanks-icon svg{width:24px;height:24px;stroke:var(--color-washi);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+  .thanks-section h1{
+    font-family:var(--font-mincho);
+    font-size:28px;
+    line-height:1.6;
+    letter-spacing:0.02em;
+  }
+  @media(min-width:1024px){ .thanks-section h1{font-size:34px;} }
+  .thanks-section h1 .en{color:rgba(244,239,230,0.85);font-size:0.5em;margin-top:12px;}
+  .thanks-lead{
+    margin-top:16px;
+    font-size:14px;
+    color:rgba(244,239,230,0.75);
+  }
+  .thanks-details{
+    max-width:420px;
+    margin:48px auto 0;
+    padding:24px;
+    border:1px solid rgba(244,239,230,0.25);
+    text-align:left;
+  }
+  .thanks-details dl{
+    display:grid;
+    grid-template-columns:auto 1fr;
+    gap:10px 16px;
+    font-size:14px;
+    margin:0;
+  }
+  .thanks-details dt{color:rgba(244,239,230,0.5);}
+  .thanks-details dd{margin:0;color:rgba(244,239,230,0.92);}
+  .thanks-note{
+    margin-top:16px;
+    font-size:12px;
+    color:rgba(244,239,230,0.5);
+  }
+  .thanks-empty{
+    margin-top:48px;
+    font-size:14px;
+    color:rgba(244,239,230,0.75);
+  }
+  .thanks-cta{margin-top:40px;}
+
+  /* ===== フッター ===== */
+  footer{
+    background:var(--color-ink);
+    color:rgba(244,239,230,0.6);
+    padding:32px 0;
+    font-size:12px;
+    border-top:1px solid rgba(244,239,230,0.1);
+  }
+  footer .wrap{display:flex;flex-direction:column;gap:12px;}
+  footer .en{color:inherit;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brand">
+      蕎麦切り 凪
+      <span class="en">Soba-kiri NAGI</span>
+    </div>
+    <button class="lang-toggle" id="lang-toggle" aria-label="Switch language">JP / EN</button>
+  </div>
+</header>
+
+<main>
+  <section class="thanks-section">
+    <div class="wrap">
+      <div class="thanks-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg>
+      </div>
+      <h1>
+        <span class="ja">ご予約を受け付けました</span>
+        <span class="en">Reservation Received</span>
+      </h1>
+      <p class="thanks-lead">
+        <span class="ja">ご入力ありがとうございました。内容は以下のとおりです。</span>
+        <span class="en">Thank you — here are the details you submitted.</span>
+      </p>
+
+      <div class="thanks-details" id="thanks-details" hidden>
+        <dl>
+          <dt><span class="ja">お名前</span><span class="en">Name</span></dt>
+          <dd id="d-name"></dd>
+          <dt><span class="ja">人数</span><span class="en">Guests</span></dt>
+          <dd id="d-guests"></dd>
+          <dt><span class="ja">日にち</span><span class="en">Date</span></dt>
+          <dd id="d-date"></dd>
+          <dt><span class="ja">時間</span><span class="en">Time</span></dt>
+          <dd id="d-time"></dd>
+        </dl>
+      </div>
+
+      <p class="thanks-empty" id="thanks-empty" hidden>
+        <span class="ja">予約内容が見つかりませんでした。お手数ですが、ご予約フォームからやり直してください。</span>
+        <span class="en">We couldn't find your reservation details. Please try the reservation form again.</span>
+      </p>
+
+      <p class="thanks-note">
+        <span class="ja">※ このページは実演用見本です。送信内容は店舗に届いておらず、画面表示のみです。</span>
+        <span class="en">This is a demo page — nothing was sent to the restaurant; it's for display only.</span>
+      </p>
+
+      <div class="thanks-cta">
+        <a href="index.html" class="btn btn-primary"><span class="ja">トップページに戻る</span><span class="en">Back to Top</span></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="brand" style="color:var(--color-washi);">蕎麦切り 凪 <span class="en" style="color:rgba(244,239,230,0.5);">Soba-kiri NAGI</span></div>
+    <p style="opacity:0.5;">&copy; 2026 Soba-kiri NAGI. 本サイトは実演用見本です。</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  // 言語切替
+  var langBtn = document.getElementById('lang-toggle');
+  langBtn.addEventListener('click', function(){
+    document.body.classList.toggle('lang-en');
+  });
+
+  // クエリパラメータから予約内容を表示
+  var params = new URLSearchParams(window.location.search);
+  var name = (params.get('name') || '').trim();
+  var guests = (params.get('guests') || '').trim();
+  var date = params.get('date') || '';
+  var time = params.get('time') || '';
+
+  var detailsEl = document.getElementById('thanks-details');
+  var emptyEl = document.getElementById('thanks-empty');
+
+  if(name && guests && date && time){
+    document.getElementById('d-name').textContent = name;
+    document.getElementById('d-guests').textContent = guests + (document.body.classList.contains('lang-en') ? ' guest(s)' : '名');
+    document.getElementById('d-date').textContent = date;
+    document.getElementById('d-time').textContent = time;
+    detailsEl.hidden = false;
+  } else {
+    emptyEl.hidden = false;
+  }
+})();
+</script>
+
+</body>
+</html>

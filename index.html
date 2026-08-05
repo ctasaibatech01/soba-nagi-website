@@ -535,6 +535,50 @@
     border-color:rgba(244,239,230,0.25);
   }
 
+  /* ===== ご予約フォーム（画面内完結の簡易版） ===== */
+  .reserve-divider{
+    margin:56px auto 40px;
+    max-width:360px;
+    display:flex;align-items:center;gap:16px;
+    color:rgba(244,239,230,0.4);
+    font-size:12px;
+    letter-spacing:0.08em;
+  }
+  .reserve-divider::before,.reserve-divider::after{
+    content:'';flex:1;height:1px;background:rgba(244,239,230,0.16);
+  }
+  .reserve-form{max-width:420px;margin:0 auto;text-align:left;}
+  .reserve-form .form-row{margin-bottom:24px;}
+  .reserve-form label{
+    display:block;
+    font-size:13px;
+    color:rgba(244,239,230,0.75);
+    margin-bottom:8px;
+  }
+  .reserve-form input{
+    width:100%;
+    background:transparent;
+    border:none;
+    border-bottom:1px solid rgba(244,239,230,0.3);
+    color:var(--color-washi);
+    font-family:var(--font-gothic);
+    font-size:15px;
+    padding:8px 2px;
+    transition:border-color var(--duration-fast) var(--ease-standard);
+  }
+  .reserve-form input::placeholder{color:rgba(244,239,230,0.35);}
+  .reserve-form input:focus{
+    outline:2px solid var(--color-indigo);
+    outline-offset:2px;
+    border-bottom-color:rgba(244,239,230,0.6);
+  }
+  .reserve-form .field-note{
+    margin-top:8px;
+    font-size:12px;
+    color:rgba(244,239,230,0.85);
+  }
+  .reserve-form button[type="submit"]{margin-top:8px;width:100%;}
+
   /* ===== フッター ===== */
   footer{
     background:var(--color-ink);
@@ -830,7 +874,7 @@
           <dt><span class="ja">営業時間</span><span class="en">Hours</span></dt>
           <dd>11:30–14:30 / 17:30–21:00</dd>
           <dt><span class="ja">定休日</span><span class="en">Closed</span></dt>
-          <dd><span class="ja">水曜日（定休日確定後に記載）</span></dd>
+          <dd><span class="ja">水曜日</span><span class="en">Wednesdays</span></dd>
         </dl>
 
         <div class="weather-widget" id="weather-widget" aria-live="polite">
@@ -919,6 +963,53 @@
         <span class="en">Booking widget to be embedded after contract</span>
       </p>
     </div>
+
+    <div class="reserve-divider reveal">
+      <span class="ja">または</span><span class="en">or</span>
+    </div>
+
+    <form class="reserve-form reveal" id="reserve-form">
+      <p class="reserve-note" style="margin-top:0;margin-bottom:24px;">
+        <span class="ja">※ 簡易フォームです。送信内容はまだ店舗に送信されず、次の確認画面に表示されるのみです。</span>
+        <span class="en">A simple preview form — nothing is sent to the restaurant yet; it only displays on the next confirmation screen.</span>
+      </p>
+      <div class="form-row">
+        <label for="rsv-name"><span class="ja">お名前</span><span class="en">Name</span></label>
+        <input type="text" id="rsv-name" name="name" required
+          data-ja-placeholder="山田 太郎" data-en-placeholder="Taro Yamada" placeholder="山田 太郎">
+      </div>
+      <div class="form-row">
+        <label for="rsv-guests"><span class="ja">人数</span><span class="en">Number of Guests</span></label>
+        <input type="number" id="rsv-guests" name="guests" min="1" max="6" required
+          data-ja-placeholder="2" data-en-placeholder="2" placeholder="2">
+      </div>
+      <div class="form-row">
+        <label for="rsv-date"><span class="ja">日にち</span><span class="en">Date</span></label>
+        <input type="date" id="rsv-date" name="date" required aria-describedby="rsv-date-note rsv-date-past-note rsv-date-future-note">
+        <p class="field-note" id="rsv-date-note" hidden>
+          <span class="ja">水曜日は定休日のため、ご予約いただけません。別の日をお選びください。</span>
+          <span class="en">We're closed on Wednesdays — please choose another date.</span>
+        </p>
+        <p class="field-note" id="rsv-date-past-note" hidden>
+          <span class="ja">過去の日にちはご予約いただけません。今日以降の日付をお選びください。</span>
+          <span class="en">Past dates can't be booked — please choose today or a later date.</span>
+        </p>
+        <p class="field-note" id="rsv-date-future-note" hidden>
+          <span class="ja">ご予約は今日から2年後まででお願いいたします。</span>
+          <span class="en">Reservations can be made up to 2 years from today.</span>
+        </p>
+      </div>
+      <div class="form-row">
+        <label for="rsv-time"><span class="ja">時間</span><span class="en">Time</span></label>
+        <input type="time" id="rsv-time" name="time" required aria-describedby="rsv-time-note">
+        <p class="field-note" id="rsv-time-note" hidden>
+          <span class="ja">営業時間は 11:30–14:30 / 17:30–21:00 です。時間内でお選びください。</span>
+          <span class="en">We're open 11:30–14:30 and 17:30–21:00. Please choose a time within these hours.</span>
+        </p>
+      </div>
+      <button type="submit" class="btn btn-primary"><span class="ja">送信する</span><span class="en">Submit</span></button>
+    </form>
+
     <div class="reserve-secondary reveal">
       <a href="tel:+81000000000" class="btn btn-secondary"><span class="ja">お電話でのご予約</span><span class="en">Call to Reserve</span></a>
       <a href="#" class="btn btn-secondary"><span class="ja">LINEでのご相談</span><span class="en">LINE Inquiry</span></a>
@@ -999,6 +1090,105 @@
       item.classList.toggle('open');
     });
   });
+
+  // ご予約フォーム（送信内容はURL経由でthanks.htmlへ。サーバー送信なし）
+  var reserveForm = document.getElementById('reserve-form');
+
+  // 過去の日にち・定休日（水曜日）は日付欄で選択不可にする
+  function toDateStr(d){
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, '0');
+    var day = String(d.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
+  }
+  function todayStr(){ return toDateStr(new Date()); }
+  function maxDateStr(){ // 今日から2年後（常に自動更新）
+    var d = new Date();
+    d.setFullYear(d.getFullYear() + 2);
+    return toDateStr(d);
+  }
+  var dateInput = document.getElementById('rsv-date');
+  var dateNote = document.getElementById('rsv-date-note');
+  var datePastNote = document.getElementById('rsv-date-past-note');
+  var dateFutureNote = document.getElementById('rsv-date-future-note');
+  if(dateInput && dateNote && datePastNote && dateFutureNote){
+    dateInput.min = todayStr(); // カレンダー上でも過去日をグレーアウト
+    dateInput.max = maxDateStr(); // カレンダー上でも2年後より先をグレーアウト
+    dateInput.addEventListener('input', function(){
+      if(!this.value){
+        dateNote.hidden = true; datePastNote.hidden = true; dateFutureNote.hidden = true;
+        return;
+      }
+      if(this.value < todayStr()){ // YYYY-MM-DD形式は文字列比較で日付順になる
+        this.value = '';
+        datePastNote.hidden = false;
+        dateNote.hidden = true; dateFutureNote.hidden = true;
+        return;
+      }
+      if(this.value > maxDateStr()){
+        this.value = '';
+        dateFutureNote.hidden = false;
+        dateNote.hidden = true; datePastNote.hidden = true;
+        return;
+      }
+      datePastNote.hidden = true; dateFutureNote.hidden = true;
+      var picked = new Date(this.value + 'T00:00:00');
+      if(picked.getDay() === 3){ // 0=日,...,3=水
+        this.value = '';
+        dateNote.hidden = false;
+      } else {
+        dateNote.hidden = true;
+      }
+    });
+  }
+
+  // 営業時間外（11:30–14:30 / 17:30–21:00 以外）は時間欄で選択不可にする
+  var timeInput = document.getElementById('rsv-time');
+  var timeNote = document.getElementById('rsv-time-note');
+  if(timeInput && timeNote){
+    timeInput.addEventListener('input', function(){
+      if(!this.value){ timeNote.hidden = true; return; }
+      var parts = this.value.split(':');
+      var minutes = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+      var lunchStart = 11 * 60 + 30, lunchEnd = 14 * 60 + 30;
+      var dinnerStart = 17 * 60 + 30, dinnerEnd = 21 * 60;
+      var inHours = (minutes >= lunchStart && minutes <= lunchEnd) || (minutes >= dinnerStart && minutes <= dinnerEnd);
+      if(!inHours){
+        this.value = '';
+        timeNote.hidden = false;
+      } else {
+        timeNote.hidden = true;
+      }
+    });
+  }
+  if(reserveForm){
+    reserveForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      if(!reserveForm.checkValidity()){
+        reserveForm.reportValidity();
+        return;
+      }
+      var name = reserveForm.elements['name'].value.trim();
+      var guests = reserveForm.elements['guests'].value.trim();
+      var date = reserveForm.elements['date'].value;
+      var time = reserveForm.elements['time'].value;
+
+      // サンクスページへ遷移（画面内完結・サーバー送信なし。値はURLにのみ渡す）
+      var params = new URLSearchParams({name: name, guests: guests, date: date, time: time});
+      window.location.href = 'thanks.html?' + params.toString();
+    });
+  }
+
+  // フォームのプレースホルダーも言語切替に追従
+  var placeholderEls = document.querySelectorAll('[data-ja-placeholder]');
+  function updatePlaceholders(){
+    var isEn = document.body.classList.contains('lang-en');
+    placeholderEls.forEach(function(el){
+      el.setAttribute('placeholder', isEn ? el.getAttribute('data-en-placeholder') : el.getAttribute('data-ja-placeholder'));
+    });
+  }
+  updatePlaceholders();
+  langBtn.addEventListener('click', updatePlaceholders);
 
   // スマホ追従予約バー：フッター手前で非表示
   var stickyBar = document.getElementById('sticky-reserve');
