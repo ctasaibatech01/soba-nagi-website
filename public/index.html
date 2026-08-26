@@ -970,8 +970,8 @@
 
     <form class="reserve-form reveal" id="reserve-form">
       <p class="reserve-note" style="margin-top:0;margin-bottom:24px;">
-        <span class="ja">※ 簡易フォームです。送信内容はまだ店舗に送信されず、次の確認画面に表示されるのみです。</span>
-        <span class="en">A simple preview form — nothing is sent to the restaurant yet; it only displays on the next confirmation screen.</span>
+        <span class="ja">※ 簡易フォームです。送信内容は実演用サーバーに記録されるのみで、店舗には届きません。</span>
+        <span class="en">A simple preview form — submissions are only recorded by the demo server and do not reach the restaurant.</span>
       </p>
       <div class="form-row">
         <label for="rsv-name"><span class="ja">お名前</span><span class="en">Name</span></label>
@@ -1091,7 +1091,7 @@
     });
   });
 
-  // ご予約フォーム（送信内容はURL経由でthanks.htmlへ。サーバー送信なし）
+  // ご予約フォーム（POST /api/reserve へ送信し、成功したらthanks.htmlへ）
   var reserveForm = document.getElementById('reserve-form');
 
   // 過去の日にち・定休日（水曜日）は日付欄で選択不可にする
@@ -1172,10 +1172,29 @@
       var guests = reserveForm.elements['guests'].value.trim();
       var date = reserveForm.elements['date'].value;
       var time = reserveForm.elements['time'].value;
-
-      // サンクスページへ遷移（画面内完結・サーバー送信なし。値はURLにのみ渡す）
       var params = new URLSearchParams({name: name, guests: guests, date: date, time: time});
-      window.location.href = 'thanks.html?' + params.toString();
+
+      // 二重送信を防ぐため、送信中はボタンを無効にする
+      var submitBtn = reserveForm.querySelector('button[type="submit"]');
+      if(submitBtn){ submitBtn.disabled = true; }
+
+      // 予約サーバー（POST /api/reserve）へ送る
+      fetch('/api/reserve', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({name: name, guests: guests, date: date, time: time})
+      }).then(function(res){
+        if(!res.ok){ throw new Error('status ' + res.status); }
+        // 送信できたらサンクスページへ（値はURLで渡して表示する）
+        window.location.href = 'thanks.html?' + params.toString();
+      }).catch(function(err){
+        console.error('予約の送信に失敗しました', err);
+        if(submitBtn){ submitBtn.disabled = false; }
+        var isEn = document.body.classList.contains('lang-en');
+        alert(isEn
+          ? 'Sorry, we could not send your reservation. Please try again.'
+          : '申し訳ございません。予約を送信できませんでした。もう一度お試しください。');
+      });
     });
   }
 
