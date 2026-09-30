@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>予約一覧 | 蕎麦切り 凪</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --color-ink:#201d1a;
+    --color-indigo:#284a6b;
+    --color-vermilion:#a83b2c;
+    --color-washi:#f4efe6;
+    --color-washi-deep:#eae2d3;
+    --color-line:rgba(32,29,26,0.12);
+    --color-ink-soft:rgba(32,29,26,0.64);
+
+    --font-mincho:'Shippori Mincho', serif;
+    --font-gothic:'Zen Kaku Gothic New', sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--color-washi);
+    color:var(--color-ink);
+    font-family:var(--font-gothic);
+    font-size:16px;
+    line-height:1.8;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,p{margin:0;}
+
+  .wrap{max-width:960px;margin:0 auto;padding:0 20px;}
+
+  header{
+    border-bottom:1px solid var(--color-line);
+    padding:28px 0 20px;
+    background:var(--color-washi-deep);
+  }
+  header .inner{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    align-items:baseline;
+    justify-content:space-between;
+  }
+  h1{
+    font-family:var(--font-mincho);
+    font-size:24px;
+    letter-spacing:0.04em;
+  }
+  .shop-name{
+    font-size:13px;
+    color:var(--color-ink-soft);
+    letter-spacing:0.08em;
+  }
+
+  main{padding:32px 0 80px;}
+
+  .toolbar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:20px;
+  }
+  .count{
+    font-size:14px;
+    color:var(--color-ink-soft);
+  }
+  .reload{
+    font-family:inherit;
+    font-size:14px;
+    padding:8px 20px;
+    border:1px solid var(--color-indigo);
+    border-radius:2px;
+    background:transparent;
+    color:var(--color-indigo);
+    cursor:pointer;
+    transition:background 160ms ease, color 160ms ease;
+  }
+  .reload:hover{background:var(--color-indigo);color:var(--color-washi);}
+  .reload:disabled{opacity:0.5;cursor:default;}
+
+  .table-scroll{overflow-x:auto;}
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    background:#fff;
+    font-variant-numeric:tabular-nums;
+  }
+  th,td{
+    text-align:left;
+    padding:14px 16px;
+    border-bottom:1px solid var(--color-line);
+    white-space:nowrap;
+  }
+  thead th{
+    font-family:var(--font-mincho);
+    font-size:14px;
+    font-weight:500;
+    letter-spacing:0.06em;
+    color:var(--color-ink-soft);
+    background:var(--color-washi-deep);
+    border-bottom:1px solid var(--color-line);
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:rgba(40,74,107,0.04);}
+
+  td.name{font-weight:500;white-space:normal;}
+  td.when{color:var(--color-indigo);}
+  td.received{font-size:14px;color:var(--color-ink-soft);}
+
+  /* 状態のえらぶ欄 */
+  .status-select{
+    font-family:inherit;
+    font-size:14px;
+    padding:6px 10px;
+    border:1px solid var(--color-line);
+    border-radius:2px;
+    background:var(--color-washi);
+    color:var(--color-ink);
+    cursor:pointer;
+  }
+  .status-select:focus{outline:2px solid var(--color-indigo);outline-offset:1px;}
+  .status-select:disabled{opacity:0.5;cursor:default;}
+  .status-select[data-status="確認済み"]{
+    border-color:var(--color-indigo);
+    color:var(--color-indigo);
+    background:rgba(40,74,107,0.06);
+  }
+  .status-select[data-status="キャンセル"]{
+    border-color:var(--color-vermilion);
+    color:var(--color-vermilion);
+    background:rgba(168,59,44,0.06);
+  }
+
+  /* キャンセルされた予約は控えめに見せる */
+  tr[data-status="キャンセル"] td.name,
+  tr[data-status="キャンセル"] td.when{
+    color:var(--color-ink-soft);
+    text-decoration:line-through;
+  }
+
+  .status-message{
+    display:block;
+    margin-top:4px;
+    font-size:12px;
+    color:var(--color-vermilion);
+  }
+
+  /* 編集まわり */
+  .row-button{
+    font-family:inherit;
+    font-size:13px;
+    padding:6px 14px;
+    border:1px solid var(--color-line);
+    border-radius:2px;
+    background:transparent;
+    color:var(--color-ink-soft);
+    cursor:pointer;
+    transition:background 160ms ease, color 160ms ease, border-color 160ms ease;
+  }
+  .row-button:hover{border-color:var(--color-indigo);color:var(--color-indigo);}
+  .row-button:disabled{opacity:0.5;cursor:default;}
+  .row-button.save{
+    border-color:var(--color-indigo);
+    background:var(--color-indigo);
+    color:var(--color-washi);
+    margin-right:6px;
+  }
+  .row-button.save:hover{background:var(--color-ink);border-color:var(--color-ink);color:var(--color-washi);}
+
+  tr.editing{background:rgba(40,74,107,0.05);}
+  tr.editing td{vertical-align:middle;}
+
+  .edit-input{
+    font-family:inherit;
+    font-size:14px;
+    padding:6px 8px;
+    border:1px solid var(--color-indigo);
+    border-radius:2px;
+    background:#fff;
+    color:var(--color-ink);
+    width:100%;
+    max-width:180px;
+  }
+  .edit-input:focus{outline:2px solid var(--color-indigo);outline-offset:1px;}
+  .edit-input.guests{width:auto;min-width:76px;max-width:110px;}
+  .edit-input.time{max-width:110px;}
+
+  .edit-message{
+    display:block;
+    margin-top:6px;
+    font-size:12px;
+    color:var(--color-vermilion);
+    white-space:normal;
+  }
+
+  .state{
+    padding:48px 20px;
+    text-align:center;
+    color:var(--color-ink-soft);
+    background:#fff;
+    border:1px solid var(--color-line);
+  }
+  .state.error{color:var(--color-vermilion);}
+
+  .note{
+    margin-top:20px;
+    font-size:13px;
+    color:var(--color-ink-soft);
+  }
+
+  @media(max-width:640px){
+    th,td{padding:12px 10px;}
+    td.received{font-size:13px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap inner">
+    <h1>ご予約一覧</h1>
+    <p class="shop-name">蕎麦切り 凪</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="toolbar">
+    <p class="count" id="count">読み込んでいます…</p>
+    <button class="reload" id="reload" type="button">最新の状態にする</button>
+  </div>
+
+  <div id="panel">
+    <div class="state">読み込んでいます…</div>
+  </div>
+
+  <p class="note">新しいご予約が上に表示されます。状態を選び直すと、その場で保存されます。内容を直すときは「編集」を押してください。</p>
+</main>
+
+<script>
+  const panel = document.getElementById('panel');
+  const countLabel = document.getElementById('count');
+  const reloadButton = document.getElementById('reload');
+
+  const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
+
+  // えらべる状態はこの3つ
+  const STATUS_CHOICES = ['未確認', '確認済み', 'キャンセル'];
+
+  // いま画面に出している予約。編集をやめたときに元へ戻すために控えておく。
+  let currentRows = [];
+
+  function findRow(id) {
+    return currentRows.find((row) => String(row.id) === String(id));
+  }
+
+  // そのまま画面に出しても安全な文字にする
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // "2026-09-10" → "9月10日（木）"
+  function formatDate(value) {
+    if (!value) return '—';
+    const parts = String(value).split('-');
+    if (parts.length !== 3) return value;
+    const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    if (Number.isNaN(date.getTime())) return value;
+    return `${date.getMonth() + 1}月${date.getDate()}日（${WEEKDAYS[date.getDay()]}）`;
+  }
+
+  // "19:00:00" → "19:00"
+  function formatTime(value) {
+    if (!value) return '—';
+    return String(value).slice(0, 5);
+  }
+
+  // 受付日時（世界標準時で届く）を日本の日時表示にする
+  function formatReceived(value) {
+    if (!value) return '—';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    const hh = String(date.getHours()).padStart(2, '0');
+    const mm = String(date.getMinutes()).padStart(2, '0');
+    return `${y}/${m}/${d} ${hh}:${mm}`;
+  }
+
+  // 状態をえらぶ欄。いま入っている状態が最初からえらばれた状態になる。
+  function statusSelect(row) {
+    const current = STATUS_CHOICES.includes(row.status) ? row.status : '未確認';
+    const options = STATUS_CHOICES.map((choice) => `
+      <option value="${escapeHtml(choice)}"${choice === current ? ' selected' : ''}>${escapeHtml(choice)}</option>
+    `).join('');
+
+    return `
+      <select class="status-select" data-id="${escapeHtml(row.id)}" data-status="${escapeHtml(current)}">
+        ${options}
+      </select>
+    `;
+  }
+
+  // ふだんの見た目の1行ぶん（中身だけ）
+  function rowViewHtml(row) {
+    return `
+      <td class="when">${escapeHtml(formatDate(row.reserved_date))}</td>
+      <td class="when">${escapeHtml(formatTime(row.reserved_time))}</td>
+      <td class="name">${escapeHtml(row.name)} 様</td>
+      <td>${escapeHtml(row.guests)}名</td>
+      <td class="status">${statusSelect(row)}</td>
+      <td class="received">${escapeHtml(formatReceived(row.created_at))}</td>
+      <td class="actions"><button class="row-button edit" type="button">編集</button></td>
+    `;
+  }
+
+  // 編集中の1行ぶん（中身だけ）。日にち・時間・お名前・人数を直せる。
+  function rowEditHtml(row) {
+    const guestOptions = [1, 2, 3, 4, 5, 6].map((count) => `
+      <option value="${count}"${count === Number(row.guests) ? ' selected' : ''}>${count}名</option>
+    `).join('');
+
+    return `
+      <td><input class="edit-input date" type="date" value="${escapeHtml(row.reserved_date)}"></td>
+      <td><input class="edit-input time" type="time" value="${escapeHtml(formatTime(row.reserved_time))}"></td>
+      <td><input class="edit-input name" type="text" value="${escapeHtml(row.name)}" maxlength="100"></td>
+      <td><select class="edit-input guests">${guestOptions}</select></td>
+      <td class="status">${escapeHtml(row.status)}</td>
+      <td class="received">${escapeHtml(formatReceived(row.created_at))}</td>
+      <td class="actions">
+        <button class="row-button save" type="button">保存</button>
+        <button class="row-button cancel" type="button">やめる</button>
+      </td>
+    `;
+  }
+
+  function renderTable(rows) {
+    const body = rows.map((row) => `
+      <tr data-id="${escapeHtml(row.id)}" data-status="${escapeHtml(STATUS_CHOICES.includes(row.status) ? row.status : '未確認')}">
+        ${rowViewHtml(row)}
+      </tr>
+    `).join('');
+
+    panel.innerHTML = `
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>ご予約日</th>
+              <th>時間</th>
+              <th>お名前</th>
+              <th>人数</th>
+              <th>状態</th>
+              <th>受付日時</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>${body}</tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  // 状態をえらび直したとき、その場でデータベースにも残す
+  async function changeStatus(select) {
+    const id = select.dataset.id;
+    const nextStatus = select.value;
+    const previousStatus = select.dataset.status; // 失敗したときに戻すため控えておく
+    const cell = select.closest('td');
+    const row = select.closest('tr');
+
+    // 前に出したお知らせを消す
+    const oldMessage = cell.querySelector('.status-message');
+    if (oldMessage) oldMessage.remove();
+
+    // 見た目は先に変える（すぐ反映されるように）
+    select.dataset.status = nextStatus;
+    if (row) row.dataset.status = nextStatus;
+    select.disabled = true;
+
+    try {
+      const response = await fetch(`/api/reservations/${encodeURIComponent(id)}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: nextStatus }),
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.message || '状態を変えられませんでした');
+      }
+
+      // データベースに残った状態にそろえる
+      const saved = data.reservation && data.reservation.status;
+      if (saved && saved !== nextStatus) {
+        select.value = saved;
+        select.dataset.status = saved;
+        if (row) row.dataset.status = saved;
+      }
+
+      // 控えている内容にも残しておく（編集をやめたときに古い状態へ戻らないように）
+      const stored = findRow(id);
+      if (stored) stored.status = saved || nextStatus;
+    } catch (err) {
+      // 残せなかったときは元の状態に戻して、そのことを伝える
+      select.value = previousStatus;
+      select.dataset.status = previousStatus;
+      if (row) row.dataset.status = previousStatus;
+      cell.insertAdjacentHTML(
+        'beforeend',
+        `<span class="status-message">${escapeHtml(err.message)}</span>`
+      );
+    } finally {
+      select.disabled = false;
+    }
+  }
+
+  panel.addEventListener('change', (event) => {
+    if (event.target.classList.contains('status-select')) {
+      changeStatus(event.target);
+    }
+  });
+
+  // 「編集」を押したとき：その行だけ入力できる形にする
+  function startEdit(tr) {
+    const row = findRow(tr.dataset.id);
+    if (!row) return;
+
+    // ほかに編集中の行があれば、先にそちらを元へ戻す
+    panel.querySelectorAll('tr.editing').forEach((editing) => {
+      if (editing !== tr) cancelEdit(editing);
+    });
+
+    tr.classList.add('editing');
+    tr.innerHTML = rowEditHtml(row);
+    const nameInput = tr.querySelector('.edit-input.name');
+    if (nameInput) nameInput.focus();
+  }
+
+  // 「やめる」を押したとき：直す前の内容に戻す
+  function cancelEdit(tr) {
+    const row = findRow(tr.dataset.id);
+    if (!row) return;
+
+    tr.classList.remove('editing');
+    tr.dataset.status = STATUS_CHOICES.includes(row.status) ? row.status : '未確認';
+    tr.innerHTML = rowViewHtml(row);
+  }
+
+  // 「保存」を押したとき：直した内容をデータベースに残す
+  async function saveEdit(tr) {
+    const row = findRow(tr.dataset.id);
+    if (!row) return;
+
+    const name = tr.querySelector('.edit-input.name').value.trim();
+    const guests = Number(tr.querySelector('.edit-input.guests').value);
+    const date = tr.querySelector('.edit-input.date').value;
+    const time = tr.querySelector('.edit-input.time').value;
+
+    const cell = tr.querySelector('td.actions');
+    const oldMessage = cell.querySelector('.edit-message');
+    if (oldMessage) oldMessage.remove();
+
+    // 送る前に、こちらでも足りないところを見ておく
+    let problem = '';
+    if (!name) problem = 'お名前を入れてください';
+    else if (!date) problem = '日にちを入れてください';
+    else if (!time) problem = '時間を入れてください';
+
+    if (problem) {
+      cell.insertAdjacentHTML('beforeend', `<span class="edit-message">${escapeHtml(problem)}</span>`);
+      return;
+    }
+
+    const buttons = tr.querySelectorAll('.row-button');
+    buttons.forEach((button) => { button.disabled = true; });
+
+    try {
+      const response = await fetch(`/api/reservations/${encodeURIComponent(row.id)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, guests, date, time }),
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.message || '予約を直せませんでした');
+      }
+
+      // 控えている内容も、残ったものにそろえてから、ふだんの見た目に戻す
+      Object.assign(row, data.reservation);
+      tr.classList.remove('editing');
+      tr.dataset.status = STATUS_CHOICES.includes(row.status) ? row.status : '未確認';
+      tr.innerHTML = rowViewHtml(row);
+    } catch (err) {
+      // 残せなかったときは、入力した内容はそのままにして理由を出す
+      buttons.forEach((button) => { button.disabled = false; });
+      cell.insertAdjacentHTML('beforeend', `<span class="edit-message">${escapeHtml(err.message)}</span>`);
+    }
+  }
+
+  panel.addEventListener('click', (event) => {
+    const button = event.target.closest('.row-button');
+    if (!button) return;
+
+    const tr = button.closest('tr');
+    if (!tr) return;
+
+    if (button.classList.contains('edit')) startEdit(tr);
+    else if (button.classList.contains('cancel')) cancelEdit(tr);
+    else if (button.classList.contains('save')) saveEdit(tr);
+  });
+
+  async function load() {
+    reloadButton.disabled = true;
+    countLabel.textContent = '読み込んでいます…';
+    panel.innerHTML = '<div class="state">読み込んでいます…</div>';
+
+    try {
+      const response = await fetch('/api/reservations');
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.message || '読み込みに失敗しました');
+      }
+
+      const rows = data.reservations || [];
+      currentRows = rows;
+
+      if (rows.length === 0) {
+        countLabel.textContent = 'ご予約はまだありません';
+        panel.innerHTML = '<div class="state">まだご予約は入っていません。</div>';
+        return;
+      }
+
+      countLabel.textContent = `${rows.length}件のご予約`;
+      renderTable(rows);
+    } catch (err) {
+      countLabel.textContent = '';
+      panel.innerHTML = `<div class="state error">予約を読み込めませんでした。<br>${escapeHtml(err.message)}</div>`;
+    } finally {
+      reloadButton.disabled = false;
+    }
+  }
+
+  reloadButton.addEventListener('click', load);
+  load();
+</script>
+
+</body>
+</html>

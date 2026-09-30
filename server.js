@@ -1,6 +1,7 @@
 // 蕎麦切り 凪 — 予約受付サーバー
 // public/ を配信し、POST /api/reserve で予約を受け取って、
 // Supabase（nagi_reservations テーブル）に保存したうえで、その内容をメールで送る。
+// お店の方は /admin でご予約の一覧を見られる（GET /api/reservations で読み出す）。
 
 require('dotenv').config(); // .env の設定を読み込む
 
@@ -156,6 +157,178 @@ app.post('/api/reserve', async (req, res) => {
 
   // 送った人に返す
   res.json({ ok: true, message: 'ご予約を受け付けました' });
+});
+
+// お店の方が見るご予約一覧のページ
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// ご予約一覧の読み出し口（新しいものが先頭にくる）
+// 読み出しもサーバーの service_role キーで行う。ブラウザ側には鍵を渡さない。
+app.get('/api/reservations', async (req, res) => {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    return res.status(500).json({ ok: false, message: 'データベースの設定ができていません' });
+  }
+
+  // 主な項目だけを、受付の新しい順に取り出す
+  const query = new URLSearchParams({
+    select: 'id,name,guests,reserved_date,reserved_time,status,created_at',
+    order: 'created_at.desc',
+    limit: '200',
+  });
+
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/nagi_reservations?${query}`, {
+      headers: {
+        apikey: SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      },
+    });
+
+    if (!response.ok) {
+      const detail = await response.text();
+      console.error(`[読み出しエラー] Supabase が ${response.status} を返しました:`, detail);
+      return res.status(500).json({ ok: false, message: '予約を読み出せませんでした' });
+    }
+
+    const reservations = await response.json();
+    res.json({ ok: true, reservations });
+  } catch (err) {
+    console.error('[読み出しエラー]', err);
+    res.status(500).json({ ok: false, message: '予約を読み出せませんでした' });
+  }
+});
+
+// 一覧から状態（status）を変える口
+// 受け付ける状態はこの3つだけ。ほかの文字は受け付けない。
+const STATUS_CHOICES = ['未確認', '確認済み', 'キャンセル'];
+
+app.patch('/api/reservations/:id/status', async (req, res) => {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    return res.status(500).json({ ok: false, message: 'データベースの設定ができていません' });
+  }
+
+  const { id } = req.params;
+  const { status } = req.body || {};
+
+  if (!STATUS_CHOICES.includes(status)) {
+    return res.status(400).json({ ok: false, message: '状態の指定がまちがっています' });
+  }
+
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/nagi_reservations?id=eq.${encodeURIComponent(id)}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: SUPABASE_SERVICE_ROLE_KEY,
+          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          Prefer: 'return=representation', // 変えたあとの行を返してもらう
+        },
+        body: JSON.stringify({ status }),
+      }
+    );
+
+    if (!response.ok) {
+      const detail = await response.text();
+      console.error(`[状態の変更エラー] Supabase が ${response.status} を返しました:`, detail);
+      return res.status(500).json({ ok: false, message: '状態を変えられませんでした' });
+    }
+
+    const rows = await response.json();
+    const updated = Array.isArray(rows) ? rows[0] : rows;
+
+    // 指定された予約が見つからなかった場合（すでに消されている など）
+    if (!updated) {
+      return res.status(404).json({ ok: false, message: 'その予約が見つかりませんでした' });
+    }
+
+    console.log(`[状態の変更] ${updated.name} 様のご予約を「${updated.status}」にしました`);
+    res.json({ ok: true, reservation: updated });
+  } catch (err) {
+    console.error('[状態の変更エラー]', err);
+    res.status(500).json({ ok: false, message: '状態を変えられませんでした' });
+  }
+});
+
+// 一覧から予約の内容（お名前・人数・日にち・時間）を直す口
+app.patch('/api/reservations/:id', async (req, res) => {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    return res.status(500).json({ ok: false, message: 'データベースの設定ができていません' });
+  }
+
+  const { id } = req.params;
+  const { name, guests, date, time } = req.body || {};
+
+  // お名前：空はだめ。長すぎるものも断る。
+  const trimmedName = typeof name === 'string' ? name.trim() : '';
+  if (!trimmedName) {
+    return res.status(400).json({ ok: false, message: 'お名前を入れてください' });
+  }
+  if (trimmedName.length > 100) {
+    return res.status(400).json({ ok: false, message: 'お名前が長すぎます' });
+  }
+
+  // 人数：1〜6名のあいだの数字だけ（テーブル側の決まりと同じ）
+  const guestCount = Number(guests);
+  if (!Number.isInteger(guestCount) || guestCount < 1 || guestCount > 6) {
+    return res.status(400).json({ ok: false, message: '人数は1〜6名で入れてください' });
+  }
+
+  // 日にち：2026-09-10 の形
+  if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return res.status(400).json({ ok: false, message: '日にちの形がちがいます' });
+  }
+
+  // 時間：19:00 または 19:00:00 の形
+  if (typeof time !== 'string' || !/^\d{2}:\d{2}(:\d{2})?$/.test(time)) {
+    return res.status(400).json({ ok: false, message: '時間の形がちがいます' });
+  }
+
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/nagi_reservations?id=eq.${encodeURIComponent(id)}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: SUPABASE_SERVICE_ROLE_KEY,
+          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          Prefer: 'return=representation', // 直したあとの行を返してもらう
+        },
+        body: JSON.stringify({
+          name: trimmedName,
+          guests: guestCount,
+          reserved_date: date,
+          reserved_time: time,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const detail = await response.text();
+      console.error(`[予約の変更エラー] Supabase が ${response.status} を返しました:`, detail);
+      return res.status(500).json({ ok: false, message: '予約を直せませんでした' });
+    }
+
+    const rows = await response.json();
+    const updated = Array.isArray(rows) ? rows[0] : rows;
+
+    // 指定された予約が見つからなかった場合（すでに消されている など）
+    if (!updated) {
+      return res.status(404).json({ ok: false, message: 'その予約が見つかりませんでした' });
+    }
+
+    console.log(
+      `[予約の変更] ${updated.name} 様 / ${updated.guests}名 / ${updated.reserved_date} ${updated.reserved_time}`
+    );
+    res.json({ ok: true, reservation: updated });
+  } catch (err) {
+    console.error('[予約の変更エラー]', err);
+    res.status(500).json({ ok: false, message: '予約を直せませんでした' });
+  }
 });
 
 app.listen(PORT, () => {
