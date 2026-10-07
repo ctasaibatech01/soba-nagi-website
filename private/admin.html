@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>予約一覧 | 蕎麦切り 凪</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="icon" href="favicon.ico" sizes="any">
-<link rel="icon" type="image/png" href="favicon-32.png" sizes="32x32">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
@@ -61,6 +61,29 @@
     color:var(--color-ink-soft);
     letter-spacing:0.08em;
   }
+
+  /* ログイン中の人とログアウト */
+  .account{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    align-items:center;
+    font-size:14px;
+  }
+  .account .user{color:var(--color-ink-soft);}
+  .account .user strong{color:var(--color-indigo);font-weight:700;letter-spacing:0.04em;}
+  .logout{
+    font-family:inherit;
+    font-size:13px;
+    padding:4px 14px;
+    border:1px solid var(--color-line);
+    border-radius:2px;
+    background:transparent;
+    color:var(--color-ink-soft);
+    cursor:pointer;
+  }
+  .logout:hover{border-color:var(--color-vermilion);color:var(--color-vermilion);}
+  .logout:disabled{opacity:0.5;cursor:default;}
 
   main{padding:32px 0 80px;}
 
@@ -139,6 +162,26 @@
     background:rgba(40,74,107,0.06);
   }
   .status-select[data-status="キャンセル"]{
+    border-color:var(--color-vermilion);
+    color:var(--color-vermilion);
+    background:rgba(168,59,44,0.06);
+  }
+
+  /* 見るだけの人向けの状態の表示（えらぶ欄と同じ色分け） */
+  .status-label{
+    display:inline-block;
+    font-size:14px;
+    padding:2px 10px;
+    border:1px solid var(--color-line);
+    border-radius:2px;
+    background:var(--color-washi);
+  }
+  .status-label[data-status="確認済み"]{
+    border-color:var(--color-indigo);
+    color:var(--color-indigo);
+    background:rgba(40,74,107,0.06);
+  }
+  .status-label[data-status="キャンセル"]{
     border-color:var(--color-vermilion);
     color:var(--color-vermilion);
     background:rgba(168,59,44,0.06);
@@ -231,8 +274,14 @@
 
 <header>
   <div class="wrap inner">
-    <h1>ご予約一覧</h1>
-    <p class="shop-name">蕎麦切り 凪</p>
+    <div>
+      <h1>ご予約一覧</h1>
+      <p class="shop-name">蕎麦切り 凪</p>
+    </div>
+    <div class="account">
+      <p class="user">ログイン中：<strong id="current-user">…</strong></p>
+      <button class="logout" id="logout" type="button">ログアウト</button>
+    </div>
   </div>
 </header>
 
@@ -246,13 +295,52 @@
     <div class="state">読み込んでいます…</div>
   </div>
 
-  <p class="note">新しいご予約が上に表示されます。状態を選び直すと、その場で保存されます。内容を直すときは「編集」を押してください。</p>
+  <p class="note" id="note">新しいご予約が上に表示されます。状態を選び直すと、その場で保存されます。内容を直すときは「編集」を押してください。</p>
 </main>
 
 <script>
   const panel = document.getElementById('panel');
   const countLabel = document.getElementById('count');
   const reloadButton = document.getElementById('reload');
+  const currentUserLabel = document.getElementById('current-user');
+  const logoutButton = document.getElementById('logout');
+
+  // サーバーとやりとりする。ログインが切れていたらログインのページへ戻す。
+  async function api(url, options) {
+    const response = await fetch(url, options);
+    if (response.status === 401) {
+      location.href = '/admin/login';
+      throw new Error('ログインが切れました');
+    }
+    return response;
+  }
+
+  // 状態や内容を変えられる人か（店長は true、スタッフは false）
+  // わからないときは変えられない側にしておく。サーバー側でも同じように断っている。
+  let canEdit = false;
+
+  // だれがログインしているかを出す
+  async function showCurrentUser() {
+    try {
+      const response = await api('/api/me');
+      const data = await response.json();
+      if (data.ok) {
+        currentUserLabel.textContent = data.user;
+        canEdit = data.canEdit === true;
+      }
+    } catch (err) {
+      currentUserLabel.textContent = '—';
+    }
+  }
+
+  logoutButton.addEventListener('click', async () => {
+    logoutButton.disabled = true;
+    try {
+      await fetch('/api/logout', { method: 'POST' });
+    } finally {
+      location.href = '/admin/login';
+    }
+  });
 
   const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
 
@@ -318,16 +406,23 @@
     `;
   }
 
+  // 見るだけの人（スタッフ）向けの状態の表示。えらぶ欄ではなく文字だけ出す。
+  function statusLabel(row) {
+    const current = STATUS_CHOICES.includes(row.status) ? row.status : '未確認';
+    return `<span class="status-label" data-status="${escapeHtml(current)}">${escapeHtml(current)}</span>`;
+  }
+
   // ふだんの見た目の1行ぶん（中身だけ）
+  // 変えられない人には、状態のえらぶ欄と「編集」ボタンを出さない。
   function rowViewHtml(row) {
     return `
       <td class="when">${escapeHtml(formatDate(row.reserved_date))}</td>
       <td class="when">${escapeHtml(formatTime(row.reserved_time))}</td>
       <td class="name">${escapeHtml(row.name)} 様</td>
       <td>${escapeHtml(row.guests)}名</td>
-      <td class="status">${statusSelect(row)}</td>
+      <td class="status">${canEdit ? statusSelect(row) : statusLabel(row)}</td>
       <td class="received">${escapeHtml(formatReceived(row.created_at))}</td>
-      <td class="actions"><button class="row-button edit" type="button">編集</button></td>
+      ${canEdit ? '<td class="actions"><button class="row-button edit" type="button">編集</button></td>' : ''}
     `;
   }
 
@@ -369,7 +464,7 @@
               <th>人数</th>
               <th>状態</th>
               <th>受付日時</th>
-              <th></th>
+              ${canEdit ? '<th></th>' : ''}
             </tr>
           </thead>
           <tbody>${body}</tbody>
@@ -396,7 +491,7 @@
     select.disabled = true;
 
     try {
-      const response = await fetch(`/api/reservations/${encodeURIComponent(id)}/status`, {
+      const response = await api(`/api/reservations/${encodeURIComponent(id)}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: nextStatus }),
@@ -493,7 +588,7 @@
     buttons.forEach((button) => { button.disabled = true; });
 
     try {
-      const response = await fetch(`/api/reservations/${encodeURIComponent(row.id)}`, {
+      const response = await api(`/api/reservations/${encodeURIComponent(row.id)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, guests, date, time }),
@@ -534,7 +629,7 @@
     panel.innerHTML = '<div class="state">読み込んでいます…</div>';
 
     try {
-      const response = await fetch('/api/reservations');
+      const response = await api('/api/reservations');
       const data = await response.json();
 
       if (!response.ok || !data.ok) {
@@ -561,7 +656,17 @@
   }
 
   reloadButton.addEventListener('click', load);
-  load();
+  // だれがログインしているか（変えられる人か）がわかってから一覧を出す
+  async function start() {
+    await showCurrentUser();
+    if (!canEdit) {
+      document.getElementById('note').textContent =
+        '新しいご予約が上に表示されます。この ID では一覧を見ることだけができます（状態や内容は変えられません）。';
+    }
+    load();
+  }
+
+  start();
 </script>
 
 </body>

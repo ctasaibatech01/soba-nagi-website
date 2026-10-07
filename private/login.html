@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ログイン | 蕎麦切り 凪</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --color-ink:#201d1a;
+    --color-indigo:#284a6b;
+    --color-vermilion:#a83b2c;
+    --color-washi:#f4efe6;
+    --color-washi-deep:#eae2d3;
+    --color-line:rgba(32,29,26,0.12);
+    --color-ink-soft:rgba(32,29,26,0.64);
+
+    --font-mincho:'Shippori Mincho', serif;
+    --font-gothic:'Zen Kaku Gothic New', sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    background:var(--color-washi);
+    color:var(--color-ink);
+    font-family:var(--font-gothic);
+    font-size:16px;
+    line-height:1.8;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,p{margin:0;}
+
+  .card{
+    width:100%;
+    max-width:360px;
+    background:#fff;
+    border:1px solid var(--color-line);
+    padding:36px 28px 32px;
+  }
+  .shop-name{
+    font-size:13px;
+    color:var(--color-ink-soft);
+    letter-spacing:0.08em;
+  }
+  h1{
+    font-family:var(--font-mincho);
+    font-size:22px;
+    letter-spacing:0.04em;
+    margin-bottom:24px;
+  }
+
+  label{
+    display:block;
+    font-size:14px;
+    color:var(--color-ink-soft);
+    margin-bottom:4px;
+  }
+  input{
+    font-family:inherit;
+    font-size:16px;
+    width:100%;
+    padding:10px 12px;
+    border:1px solid var(--color-line);
+    border-radius:2px;
+    background:var(--color-washi);
+    color:var(--color-ink);
+    margin-bottom:18px;
+  }
+  input:focus{outline:2px solid var(--color-indigo);outline-offset:1px;}
+
+  button{
+    font-family:inherit;
+    font-size:15px;
+    width:100%;
+    padding:10px;
+    border:1px solid var(--color-indigo);
+    border-radius:2px;
+    background:var(--color-indigo);
+    color:var(--color-washi);
+    cursor:pointer;
+    transition:background 160ms ease;
+  }
+  button:hover{background:var(--color-ink);border-color:var(--color-ink);}
+  button:disabled{opacity:0.5;cursor:default;}
+
+  .message{
+    min-height:1.8em;
+    margin-top:12px;
+    font-size:13px;
+    color:var(--color-vermilion);
+  }
+</style>
+</head>
+<body>
+
+<form class="card" id="login-form">
+  <p class="shop-name">蕎麦切り 凪</p>
+  <h1>管理画面ログイン</h1>
+
+  <label for="id">ID</label>
+  <input id="id" name="id" type="text" autocomplete="username" autocapitalize="characters" required autofocus>
+
+  <label for="password">パスワード</label>
+  <input id="password" name="password" type="password" autocomplete="current-password" required>
+
+  <button type="submit" id="submit">ログイン</button>
+  <p class="message" id="message" role="alert"></p>
+</form>
+
+<script>
+  const form = document.getElementById('login-form');
+  const submitButton = document.getElementById('submit');
+  const message = document.getElementById('message');
+  const idInput = document.getElementById('id');
+  const passwordInput = document.getElementById('password');
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    message.textContent = '';
+    submitButton.disabled = true;
+
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: idInput.value,
+          password: passwordInput.value,
+        }),
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.message || 'ログインできませんでした');
+      }
+
+      // ログインできたら一覧へ
+      location.href = '/admin';
+    } catch (err) {
+      message.textContent = err.message;
+      passwordInput.value = '';
+      passwordInput.focus();
+      submitButton.disabled = false;
+    }
+  });
+</script>
+
+</body>
+</html>

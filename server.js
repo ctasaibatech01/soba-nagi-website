@@ -2,10 +2,12 @@
 // public/ を配信し、POST /api/reserve で予約を受け取って、
 // Supabase（nagi_reservations テーブル）に保存したうえで、その内容をメールで送る。
 // お店の方は /admin でご予約の一覧を見られる（GET /api/reservations で読み出す）。
+// /admin と予約を読み書きする口は、ログインした人（TEBCHO / STAFF）だけが使える。
 
 require('dotenv').config(); // .env の設定を読み込む
 
 const path = require('path');
+const crypto = require('crypto');
 const express = require('express');
 const { Resend } = require('resend');
 
@@ -30,10 +32,85 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   console.warn('⚠ SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY が .env にありません。予約はデータベースに保存されません。');
 }
 
+// 管理画面にログインできる人と、そのパスワード（.env に書いてある）
+const ADMIN_USERS = {
+  TEBCHO: process.env.TEBCHO_PASSWORD,
+  STAFF: process.env.STAFF_PASSWORD,
+};
+// 予約の状態や内容を変えられる人（店長）。ここにいない人（スタッフ）は一覧を見るだけ。
+const CAN_EDIT_USERS = ['TEBCHO'];
+
+function canEdit(user) {
+  return CAN_EDIT_USERS.includes(user);
+}
+
+for (const [id, password] of Object.entries(ADMIN_USERS)) {
+  if (!password) {
+    console.warn(`⚠ ${id}_PASSWORD が .env にありません。${id} ではログインできません。`);
+  }
+}
+
+// ログイン中の人の控え（合言葉 → だれか・いつまで有効か）
+// サーバーを起動し直すと全員ログアウトになる。
+const SESSION_COOKIE = 'nagi_admin_session';
+const SESSION_HOURS = 12;
+const sessions = new Map();
+
+// ブラウザから届いた Cookie の中から、ログインの合言葉を取り出す
+function readSessionToken(req) {
+  const header = req.headers.cookie || '';
+  for (const part of header.split(';')) {
+    const [key, ...rest] = part.trim().split('=');
+    if (key === SESSION_COOKIE) return decodeURIComponent(rest.join('='));
+  }
+  return null;
+}
+
+// いまログインしている人の ID を返す（ログインしていなければ null）
+function currentUser(req) {
+  const token = readSessionToken(req);
+  if (!token) return null;
+  const session = sessions.get(token);
+  if (!session) return null;
+  if (session.expiresAt < Date.now()) {
+    sessions.delete(token);
+    return null;
+  }
+  return session.user;
+}
+
+// パスワードを比べる（文字の長さや一致の早さから中身を推測されないようにする）
+function passwordMatches(input, expected) {
+  if (typeof input !== 'string' || !expected) return false;
+  const a = crypto.createHash('sha256').update(input).digest();
+  const b = crypto.createHash('sha256').update(expected).digest();
+  return crypto.timingSafeEqual(a, b);
+}
+
+// ログインしていない人を通さない（予約を読み書きする口に付ける）
+function requireLogin(req, res, next) {
+  const user = currentUser(req);
+  if (!user) {
+    return res.status(401).json({ ok: false, message: 'ログインしてください' });
+  }
+  req.adminUser = user;
+  next();
+}
+
+// 変える権限のない人（スタッフ）を通さない（予約を変える口に付ける）
+function requireEditor(req, res, next) {
+  if (!canEdit(req.adminUser)) {
+    console.warn(`[権限なし] ${req.adminUser} が ${req.method} ${req.originalUrl} を試みました`);
+    return res.status(403).json({ ok: false, message: 'この操作をする権限がありません' });
+  }
+  next();
+}
+
 // JSON 形式の送信内容を読めるようにする
 app.use(express.json());
 
 // public フォルダの中のページをそのまま配信する
+// （管理画面のページは private/ に置き、ここからは配信しない）
 app.use(express.static(path.join(__dirname, 'public')));
 
 // メール本文に入れる文字をそのまま安全に表示できるようにする
@@ -159,10 +236,57 @@ app.post('/api/reserve', async (req, res) => {
   res.json({ ok: true, message: 'ご予約を受け付けました' });
 });
 
-// お店の方が見るご予約一覧のページ
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+// ログインのページ（すでにログインしていれば一覧へ）
+app.get('/admin/login', (req, res) => {
+  if (currentUser(req)) return res.redirect('/admin');
+  res.sendFile(path.join(__dirname, 'private', 'login.html'));
 });
+
+// お店の方が見るご予約一覧のページ（ログインしていなければログインのページへ）
+app.get('/admin', (req, res) => {
+  if (!currentUser(req)) return res.redirect('/admin/login');
+  res.sendFile(path.join(__dirname, 'private', 'admin.html'));
+});
+
+// ログインの受け口：ID とパスワードが合っていれば、合言葉を Cookie で渡す
+app.post('/api/login', (req, res) => {
+  const { id, password } = req.body || {};
+  const userId = typeof id === 'string' ? id.trim().toUpperCase() : '';
+
+  if (!Object.hasOwn(ADMIN_USERS, userId) || !passwordMatches(password, ADMIN_USERS[userId])) {
+    console.warn(`[ログイン失敗] ID: ${userId || '(空)'}`);
+    return res.status(401).json({ ok: false, message: 'ID またはパスワードがちがいます' });
+  }
+
+  const token = crypto.randomBytes(32).toString('hex');
+  const maxAge = SESSION_HOURS * 60 * 60;
+  sessions.set(token, { user: userId, expiresAt: Date.now() + maxAge * 1000 });
+
+  res.setHeader(
+    'Set-Cookie',
+    `${SESSION_COOKIE}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${req.secure ? '; Secure' : ''}`
+  );
+  console.log(`[ログイン] ${userId}`);
+  res.json({ ok: true, user: userId });
+});
+
+// ログアウトの受け口：控えから消し、Cookie も消す
+app.post('/api/logout', (req, res) => {
+  const token = readSessionToken(req);
+  const user = currentUser(req);
+  if (token) sessions.delete(token);
+  res.setHeader('Set-Cookie', `${SESSION_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`);
+  if (user) console.log(`[ログアウト] ${user}`);
+  res.json({ ok: true });
+});
+
+// いまだれがログインしているかを返す
+app.get('/api/me', requireLogin, (req, res) => {
+  res.json({ ok: true, user: req.adminUser, canEdit: canEdit(req.adminUser) });
+});
+
+// ここから下の予約を読み書きする口は、ログインした人だけが使える
+app.use('/api/reservations', requireLogin);
 
 // ご予約一覧の読み出し口（新しいものが先頭にくる）
 // 読み出しもサーバーの service_role キーで行う。ブラウザ側には鍵を渡さない。
@@ -204,7 +328,7 @@ app.get('/api/reservations', async (req, res) => {
 // 受け付ける状態はこの3つだけ。ほかの文字は受け付けない。
 const STATUS_CHOICES = ['未確認', '確認済み', 'キャンセル'];
 
-app.patch('/api/reservations/:id/status', async (req, res) => {
+app.patch('/api/reservations/:id/status', requireEditor, async (req, res) => {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     return res.status(500).json({ ok: false, message: 'データベースの設定ができていません' });
   }
@@ -245,7 +369,7 @@ app.patch('/api/reservations/:id/status', async (req, res) => {
       return res.status(404).json({ ok: false, message: 'その予約が見つかりませんでした' });
     }
 
-    console.log(`[状態の変更] ${updated.name} 様のご予約を「${updated.status}」にしました`);
+    console.log(`[状態の変更] ${updated.name} 様のご予約を「${updated.status}」にしました（${req.adminUser}）`);
     res.json({ ok: true, reservation: updated });
   } catch (err) {
     console.error('[状態の変更エラー]', err);
@@ -254,7 +378,7 @@ app.patch('/api/reservations/:id/status', async (req, res) => {
 });
 
 // 一覧から予約の内容（お名前・人数・日にち・時間）を直す口
-app.patch('/api/reservations/:id', async (req, res) => {
+app.patch('/api/reservations/:id', requireEditor, async (req, res) => {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     return res.status(500).json({ ok: false, message: 'データベースの設定ができていません' });
   }
@@ -322,7 +446,7 @@ app.patch('/api/reservations/:id', async (req, res) => {
     }
 
     console.log(
-      `[予約の変更] ${updated.name} 様 / ${updated.guests}名 / ${updated.reserved_date} ${updated.reserved_time}`
+      `[予約の変更] ${updated.name} 様 / ${updated.guests}名 / ${updated.reserved_date} ${updated.reserved_time}（${req.adminUser}）`
     );
     res.json({ ok: true, reservation: updated });
   } catch (err) {
