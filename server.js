@@ -6,6 +6,7 @@
 
 require('dotenv').config(); // .env の設定を読み込む
 
+const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const express = require('express');
@@ -236,16 +237,21 @@ app.post('/api/reserve', async (req, res) => {
   res.json({ ok: true, message: 'ご予約を受け付けました' });
 });
 
+// private/ のページは fs.readFileSync で読む。
+// Vercel はコードの中で fs で読んでいるファイルを見つけて一緒に載せるので、
+// こう書いておくと private/ のページも Vercel 上に置かれる（sendFile だと置かれず 404 になる）。
+// ファイル名は path.join にそのまま書くこと（変数にすると Vercel が見つけられない）。
+
 // ログインのページ（すでにログインしていれば一覧へ）
 app.get('/admin/login', (req, res) => {
   if (currentUser(req)) return res.redirect('/admin');
-  res.sendFile(path.join(__dirname, 'private', 'login.html'));
+  res.type('html').send(fs.readFileSync(path.join(__dirname, 'private', 'login.html'), 'utf8'));
 });
 
 // お店の方が見るご予約一覧のページ（ログインしていなければログインのページへ）
 app.get('/admin', (req, res) => {
   if (!currentUser(req)) return res.redirect('/admin/login');
-  res.sendFile(path.join(__dirname, 'private', 'admin.html'));
+  res.type('html').send(fs.readFileSync(path.join(__dirname, 'private', 'admin.html'), 'utf8'));
 });
 
 // ログインの受け口：ID とパスワードが合っていれば、合言葉を Cookie で渡す
@@ -455,6 +461,13 @@ app.patch('/api/reservations/:id', requireEditor, async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`サーバーを起動しました  http://localhost:${PORT}`);
-});
+// node server.js で動かしたとき（ローカル）だけ、自分でサーバーを起動する。
+// Vercel では（vercel.json の "framework": "express"）このファイルが読み込まれ、
+// public/ にないリクエストはすべて下で渡す app が受け取る。
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`サーバーを起動しました  http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
