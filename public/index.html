@@ -19,12 +19,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
   :root{
-    --color-ink:#201d1a;
+    --color-ink:#14110f;
+    --color-ink-2:#1c1815;
     --color-indigo:#284a6b;
-    --color-vermilion:#a83b2c;
-    --color-washi:#f4efe6;
-    --color-washi-deep:#eae2d3;
-    --color-line:rgba(32,29,26,0.12);
+    --color-vermilion:#b3402e;
+    --color-washi:#f1ebdf;
+    --color-washi-deep:#e6ddcb;
+    --color-line:rgba(32,29,26,0.14);
+    --color-line-light:rgba(241,235,223,0.18);
+    --text-on-dark:rgba(241,235,223,0.78);
+    --text-on-dark-soft:rgba(241,235,223,0.56);
     --color-ink-soft:rgba(32,29,26,0.64);
 
     --font-mincho:'Shippori Mincho', serif;
@@ -36,6 +40,7 @@
 
     --ease-standard:cubic-bezier(0.4,0,0.2,1);
     --ease-gentle:cubic-bezier(0.25,0.1,0.25,1);
+    --ease-curtain:cubic-bezier(.77,0,.18,1);
     --duration-fast:160ms;
     --duration-base:320ms;
     --duration-slow:2400ms;
@@ -114,6 +119,38 @@
     transform:translateY(0);
   }
 
+  /* ===== 画像カーテン（story / menu / gallery のみ。html.js のときだけ初期非表示） ===== */
+  .placeholder-img[data-reveal="clip"]::after{
+    content:"";position:absolute;left:0;right:0;top:0;height:1px;
+    background:var(--color-line);z-index:3;
+    transform-origin:left center;opacity:0;pointer-events:none;
+  }
+  html.js .placeholder-img[data-reveal="clip"]:not(.is-visible) > img{
+    clip-path:inset(0 0 100% 0);
+    transform:scale(1.15);
+  }
+  html.js .placeholder-img[data-reveal="clip"].is-visible > img{
+    animation:
+      curtain-clip 1200ms var(--ease-curtain) calc(600ms + var(--i,0) * 120ms) backwards,
+      curtain-scale 1600ms var(--ease-curtain) calc(600ms + var(--i,0) * 120ms) backwards;
+  }
+  html.js .placeholder-img[data-reveal="clip"].is-visible::after{
+    animation:curtain-rule 600ms var(--ease-curtain) calc(var(--i,0) * 120ms) both;
+  }
+  @keyframes curtain-clip{from{clip-path:inset(0 0 100% 0);}to{clip-path:inset(0);}}
+  @keyframes curtain-scale{from{transform:scale(1.15);}to{transform:scale(1);}}
+  @keyframes curtain-rule{
+    0%{transform:scaleX(0);opacity:1;}
+    80%{transform:scaleX(1);opacity:1;}
+    100%{transform:scaleX(1);opacity:0;}
+  }
+  @keyframes curtain-fade{from{opacity:0;}to{opacity:1;}}
+  @media (prefers-reduced-motion: reduce){
+    html.js .placeholder-img[data-reveal="clip"]:not(.is-visible) > img{clip-path:none;transform:none;opacity:0;}
+    html.js .placeholder-img[data-reveal="clip"].is-visible > img{animation:curtain-fade 200ms linear backwards;}
+    html.js .placeholder-img[data-reveal="clip"].is-visible::after{animation:none;}
+  }
+
   /* ===== ヘッダー ===== */
   header{
     position:fixed;
@@ -122,10 +159,11 @@
     background:transparent;
     transition:background-color var(--duration-base) var(--ease-standard), box-shadow var(--duration-base) var(--ease-standard);
   }
+  header{color:var(--color-washi);}
   header.solid{
-    background:rgba(244,239,230,0.94);
-    box-shadow:0 2px 12px rgba(32,29,26,0.06);
-    backdrop-filter:blur(6px);
+    background:rgba(20,17,15,0.82);
+    box-shadow:0 1px 0 var(--color-line-light);
+    backdrop-filter:blur(8px);
   }
   header .wrap{
     display:flex;align-items:center;justify-content:space-between;
@@ -135,30 +173,78 @@
     font-family:var(--font-mincho);
     font-size:20px;
     letter-spacing:0.06em;
-    color:var(--color-ink);
+    color:inherit;
   }
-  .brand .en{margin:0;font-size:11px;letter-spacing:0.12em;}
+  .brand .en{margin:0;font-size:13px;letter-spacing:0.12em;}
   nav.main-nav{display:none;}
   @media(min-width:1024px){
     nav.main-nav{display:flex;gap:28px;font-size:14px;}
     nav.main-nav a{position:relative;padding:4px 0;}
     nav.main-nav a::after{
       content:'';position:absolute;left:0;bottom:0;width:0;height:1px;
-      background:var(--color-indigo);
+      background:var(--color-washi);
       transition:width var(--duration-base) var(--ease-standard);
     }
     nav.main-nav a:hover::after{width:100%;}
   }
   .header-actions{display:flex;align-items:center;gap:16px;}
   .lang-toggle{
-    font-size:12px;
-    border:1px solid var(--color-line);
+    font-size:13px;
+    border:1px solid var(--text-on-dark-soft);
     border-radius:2px;
     padding:6px 10px;
     background:transparent;
     cursor:pointer;
-    color:var(--color-ink);
+    color:inherit;
     font-family:var(--font-gothic);
+  }
+
+  /* ===== SPメニュー(ハンバーガー＋全画面) ===== */
+  .menu-toggle{
+    width:44px;height:44px;padding:0;border:0;background:transparent;cursor:pointer;
+    display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+    color:inherit;
+  }
+  .menu-toggle span{display:block;width:22px;height:1.5px;background:currentColor;transition:transform 300ms var(--ease-standard), opacity 200ms linear;}
+  .menu-toggle[aria-expanded="true"] span:nth-child(1){transform:translateY(7.5px) rotate(45deg);}
+  .menu-toggle[aria-expanded="true"] span:nth-child(2){opacity:0;}
+  .menu-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-7.5px) rotate(-45deg);}
+  @media(min-width:1024px){ .menu-toggle, .sp-menu{display:none !important;} }
+  body.menu-open{overflow:hidden;}
+  body.menu-open header, body.menu-open header.solid{background:transparent;box-shadow:none;backdrop-filter:none;}
+  body.menu-open header .brand, body.menu-open header .lang-toggle, body.menu-open .menu-toggle{color:var(--color-washi);}
+  body.menu-open header .lang-toggle{border-color:var(--text-on-dark-soft);}
+  .sp-menu{
+    position:fixed;inset:0;z-index:99;
+    background:var(--color-ink);color:var(--color-washi);
+    padding:96px 24px 32px;overflow-y:auto;
+    clip-path:inset(0 0 100% 0);visibility:hidden;
+    transition:clip-path 380ms var(--ease-standard), visibility 0s linear 380ms;
+  }
+  .sp-menu.is-open{clip-path:inset(0 0 0 0);visibility:visible;transition:clip-path 380ms var(--ease-standard), visibility 0s;}
+  .sp-menu ul{list-style:none;margin:0;padding:0;}
+  .sp-menu li{opacity:0;transform:translateY(8px);transition:opacity 160ms linear, transform 160ms var(--ease-standard);}
+  .sp-menu.is-open li{opacity:1;transform:none;}
+  .sp-menu.is-open li:nth-child(2){transition-delay:40ms;}
+  .sp-menu.is-open li:nth-child(3){transition-delay:80ms;}
+  .sp-menu.is-open li:nth-child(4){transition-delay:120ms;}
+  .sp-menu.is-open li:nth-child(5){transition-delay:160ms;}
+  .sp-menu.is-open li:nth-child(6){transition-delay:200ms;}
+  .sp-menu.is-open li:nth-child(7){transition-delay:240ms;}
+  .sp-menu a{
+    display:flex;align-items:center;min-height:56px;
+    font-family:var(--font-mincho);font-size:22px;letter-spacing:0.08em;
+    color:var(--color-washi);
+    border-bottom:1px solid rgba(244,239,230,0.16);
+  }
+  .sp-menu a.sp-menu-reserve{background:var(--color-vermilion);color:var(--color-washi);justify-content:center;border-bottom:0;margin-top:16px;border-radius:2px;}
+  .sp-menu a:focus-visible, .menu-toggle:focus-visible{outline-color:var(--color-washi);}
+  body.menu-open .menu-toggle:focus-visible{outline-color:var(--color-washi);}
+  @media (prefers-reduced-motion: reduce){
+    .sp-menu, .sp-menu.is-open{transition:opacity 200ms linear, visibility 0s linear 200ms;clip-path:none;opacity:0;}
+    .sp-menu.is-open{opacity:1;transition:opacity 200ms linear, visibility 0s;}
+    .sp-menu li, .sp-menu.is-open li{transform:none;transition:none;opacity:1;}
+    .menu-toggle span{transition:none;}
   }
 
   /* ===== ボタン ===== */
@@ -188,7 +274,7 @@
     font-size:13px;
   }
   .btn-secondary:hover{border-color:var(--color-ink-soft);}
-  .btn-small{padding:8px 16px;font-size:12px;}
+  .btn-small{padding:8px 16px;font-size:13px;}
 
   /* ===== ヒーロー（視覚的主役：案A「料理写真中心」に決定。hero-bg.png使用） ===== */
   .hero{
@@ -258,20 +344,22 @@
     border:1px solid var(--color-vermilion);
     color:#f0b3a4;
     border-radius:2px;
-    font-size:11px;
+    font-size:13px;
   }
   .hero-cta{margin-top:40px;}
   .hero-scroll-cue{
     position:absolute;bottom:32px;left:50%;transform:translateX(-50%);
-    font-size:11px;color:rgba(244,239,230,0.5);
+    font-size:13px;color:rgba(241,235,223,0.8);
     letter-spacing:0.1em;
   }
 
   /* ===== 要点バー ===== */
   .point-bar{
-    background:var(--color-ink);
+    background:var(--color-ink-2);
     color:var(--color-washi);
     padding:0;
+    border-top:1px solid var(--color-line-light);
+    border-bottom:1px solid var(--color-line-light);
   }
   .point-bar ul{
     display:flex;
@@ -283,7 +371,7 @@
     padding:14px 20px;
     font-size:13px;
     white-space:nowrap;
-    border-right:1px solid rgba(244,239,230,0.12);
+    border-right:1px solid var(--color-line-light);
     flex-shrink:0;
   }
   .point-bar .icon{
@@ -327,7 +415,7 @@
     border:1px dashed var(--color-line);
     display:flex;align-items:center;justify-content:center;
     color:var(--color-ink-soft);
-    font-size:12px;
+    font-size:13px;
     text-align:center;
     padding:16px;
     overflow:hidden;
@@ -340,6 +428,9 @@
     transform-origin:bottom;
     z-index:2;
   }
+  .menu-section .placeholder-img .steam{background:linear-gradient(180deg, transparent, rgba(241,235,223,0.28), transparent);}
+  .menu-section .placeholder-img[data-reveal="clip"]::after,
+  .gallery-section .placeholder-img[data-reveal="clip"]::after{background:var(--color-line-light);}
   .placeholder-img.has-photo{border:none;padding:0;background:none;}
   .placeholder-img.has-photo > img{
     position:absolute;inset:0;
@@ -357,7 +448,9 @@
   .story-text p.en{color:var(--color-ink-soft);}
 
   /* ===== お品書き ===== */
-  .menu-section{background:var(--color-washi-deep);}
+  .menu-section{background:var(--color-ink);color:var(--color-washi);}
+  .menu-section .en,.menu-section p{color:var(--text-on-dark-soft);}
+  .menu-section .price{color:var(--color-washi);}
   .menu-grid{
     display:grid;
     grid-template-columns:1fr;
@@ -383,12 +476,12 @@
   }
   .badge-tag{
     position:absolute;top:8px;right:8px;
-    background:var(--color-washi);
-    border:1px solid var(--color-line);
-    font-size:10px;
+    background:var(--color-ink);
+    border:1px solid var(--color-line-light);
+    font-size:13px;
     padding:3px 8px;
     border-radius:2px;
-    color:var(--color-ink-soft);
+    color:var(--text-on-dark);
     z-index:2;
   }
   .menu-card h3{
@@ -398,7 +491,7 @@
   }
   .menu-card .price{
     font-family:var(--font-latin);
-    color:var(--color-indigo);
+    color:var(--color-washi);
     margin-top:4px;
     font-size:15px;
   }
@@ -418,7 +511,8 @@
   .course-item .price{font-family:var(--font-latin);color:var(--color-indigo);font-size:16px;white-space:nowrap;}
 
   /* ===== ギャラリー ===== */
-  .gallery-section{background:var(--color-washi-deep);}
+  .gallery-section{background:var(--color-ink);color:var(--color-washi);}
+  .gallery-section .en,.gallery-section p{color:var(--text-on-dark-soft);}
   .gallery-scroll{
     display:flex;
     gap:16px;
@@ -447,7 +541,7 @@
     border:1px solid var(--color-line);
   }
   .map-embed iframe{width:100%;height:100%;border:0;display:block;}
-  .map-note{margin-top:8px;font-size:11px;color:var(--color-ink-soft);opacity:0.8;}
+  .map-note{margin-top:8px;font-size:13px;color:var(--color-ink-soft);}
   .access-info dl{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:14px;}
   .access-info dt{font-weight:700;color:var(--color-indigo);width:100%;margin-top:16px;}
   .access-info dt:first-child{margin-top:0;}
@@ -468,7 +562,7 @@
   .weather-details{display:flex;flex-direction:column;gap:2px;}
   .weather-temp{font-family:var(--font-latin);font-size:24px;color:var(--color-ink);}
   .weather-desc{font-size:13px;color:var(--color-ink-soft);}
-  .weather-note{width:100%;margin-top:4px;font-size:11px;color:var(--color-ink-soft);opacity:0.8;}
+  .weather-note{width:100%;margin-top:4px;font-size:13px;color:var(--color-ink-soft);}
 
   /* ===== FAQ ===== */
   .faq-section{background:var(--color-washi-deep);}
@@ -520,8 +614,8 @@
   .reserve-main{margin-top:40px;}
   .reserve-note{
     margin-top:16px;
-    font-size:12px;
-    color:rgba(244,239,230,0.5);
+    font-size:13px;
+    color:var(--text-on-dark-soft);
   }
   .reserve-secondary{
     margin-top:48px;
@@ -540,8 +634,8 @@
     margin:56px auto 40px;
     max-width:360px;
     display:flex;align-items:center;gap:16px;
-    color:rgba(244,239,230,0.4);
-    font-size:12px;
+    color:var(--text-on-dark-soft);
+    font-size:13px;
     letter-spacing:0.08em;
   }
   .reserve-divider::before,.reserve-divider::after{
@@ -559,22 +653,24 @@
     width:100%;
     background:transparent;
     border:none;
-    border-bottom:1px solid rgba(244,239,230,0.3);
+    border-bottom:1px solid rgba(241,235,223,0.55);
     color:var(--color-washi);
+    color-scheme:dark;
     font-family:var(--font-gothic);
-    font-size:15px;
+    font-size:16px;
+    min-height:44px;
     padding:8px 2px;
     transition:border-color var(--duration-fast) var(--ease-standard);
   }
-  .reserve-form input::placeholder{color:rgba(244,239,230,0.35);}
+  .reserve-form input::placeholder{color:rgba(241,235,223,0.55);}
   .reserve-form input:focus{
-    outline:2px solid var(--color-indigo);
+    outline:2px solid var(--color-washi);
     outline-offset:2px;
     border-bottom-color:rgba(244,239,230,0.6);
   }
   .reserve-form .field-note{
     margin-top:8px;
-    font-size:12px;
+    font-size:13px;
     color:rgba(244,239,230,0.85);
   }
   .reserve-form button[type="submit"]{margin-top:8px;width:100%;}
@@ -582,10 +678,10 @@
   /* ===== フッター ===== */
   footer{
     background:var(--color-ink);
-    color:rgba(244,239,230,0.6);
+    color:var(--text-on-dark-soft);
     padding:48px 0 96px;
-    font-size:12px;
-    border-top:1px solid rgba(244,239,230,0.1);
+    font-size:13px;
+    border-top:1px solid var(--color-line-light);
   }
   @media(min-width:1024px){ footer{padding-bottom:48px;} }
   footer .wrap{display:flex;flex-direction:column;gap:16px;}
@@ -619,6 +715,15 @@
     outline:2px solid var(--color-indigo);
     outline-offset:2px;
   }
+  /* 暗地ではフォーカスリングを和紙色に */
+  .hero a:focus-visible, .hero button:focus-visible,
+  .point-bar a:focus-visible, .point-bar button:focus-visible,
+  .menu-section a:focus-visible, .menu-section button:focus-visible,
+  .gallery-section a:focus-visible, .gallery-section button:focus-visible,
+  .reserve-section a:focus-visible, .reserve-section button:focus-visible,
+  footer a:focus-visible, footer button:focus-visible{
+    outline-color:var(--color-washi);
+  }
 
   /* ===== reduced motion ===== */
   @media (prefers-reduced-motion: reduce){
@@ -638,6 +743,7 @@
   body.reduce-motion .menu-card:hover{transform:none !important;}
   body.reduce-motion .menu-card:hover .placeholder-img.has-photo > img{transform:none !important;}
 </style>
+<script>document.documentElement.classList.add('js');</script>
 </head>
 <body>
 
@@ -659,9 +765,23 @@
     <div class="header-actions">
       <button class="lang-toggle" id="lang-toggle" aria-label="Switch language">JP / EN</button>
       <a href="#reserve" class="btn btn-primary btn-small"><span class="ja">ご予約</span><span class="en">Reserve</span></a>
+      <button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="sp-menu" aria-label="メニューを開く"><span></span><span></span><span></span></button>
     </div>
   </div>
 </header>
+
+<!-- ===== SPメニュー ===== -->
+<div class="sp-menu" id="sp-menu" role="dialog" aria-modal="true" aria-label="メニュー">
+  <ul>
+    <li><a href="#news"><span class="ja">お知らせ</span><span class="en">News</span></a></li>
+    <li><a href="#story"><span class="ja">物語</span><span class="en">Story</span></a></li>
+    <li><a href="#menu"><span class="ja">お品書き</span><span class="en">Menu</span></a></li>
+    <li><a href="#gallery"><span class="ja">ギャラリー</span><span class="en">Gallery</span></a></li>
+    <li><a href="#access"><span class="ja">アクセス</span><span class="en">Access</span></a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#reserve" class="sp-menu-reserve"><span class="ja">ご予約</span><span class="en">Reserve</span></a></li>
+  </ul>
+</div>
 
 <!-- ===== 1. ヒーロー（視覚的主役：案A「料理写真中心」で確定、hero-bg.png使用） ===== -->
 <section class="hero" role="img" aria-label="ざるに盛られた手打ち蕎麦">
@@ -734,7 +854,7 @@
         <span class="ja">［お知らせ差し替え用］オンライン予約を開始しました</span><span class="en inline">Online reservations now open</span>
       </div>
     </div>
-    <p style="margin-top:24px;font-size:12px;color:var(--color-ink-soft);">
+    <p style="margin-top:24px;font-size:13px;color:var(--color-ink-soft);">
       <span class="ja">※ お知らせの内容・日付はサンプルです。実際の最新情報に差し替えてください。</span>
       <span class="en">News items are placeholders. Please replace with real updates.</span>
     </p>
@@ -745,7 +865,7 @@
 <section class="story washi-texture" id="story">
   <div class="wrap">
     <div class="grid">
-      <div class="reveal placeholder-img has-photo">
+      <div class="placeholder-img has-photo" data-reveal="clip">
         <img src="story-craftsmanship.png.png" alt="職人が手打ちで蕎麦を仕上げる様子 / A craftsman preparing handmade soba">
       </div>
       <div class="reveal story-text">
@@ -775,7 +895,7 @@
     </h2>
     <div class="menu-grid">
       <div class="menu-card reveal">
-        <div class="placeholder-img has-photo">
+        <div class="placeholder-img has-photo" data-reveal="clip" style="--i:0">
           <div class="steam" aria-hidden="true"></div>
           <img src="menu-seiro.png.png" alt="せいろ蕎麦 / Seiro soba">
         </div>
@@ -785,7 +905,7 @@
         <p class="en">Seiro Soba (cold, served with dipping sauce)</p>
       </div>
       <div class="menu-card reveal">
-        <div class="placeholder-img has-photo">
+        <div class="placeholder-img has-photo" data-reveal="clip" style="--i:1">
           <div class="steam" aria-hidden="true"></div>
           <img src="menu-tenseiro.png.png" alt="天せいろ蕎麦 / Tenseiro soba with tempura">
         </div>
@@ -795,7 +915,7 @@
         <p class="en">Tenseiro (soba with tempura)</p>
       </div>
     </div>
-    <p style="margin-top:24px;font-size:12px;color:var(--color-ink-soft);">
+    <p style="margin-top:24px;font-size:13px;color:var(--text-on-dark-soft);">
       <span class="ja">※ 価格・メニュー内容は実店舗の情報確定後に差し替えてください。</span>
       <span class="en">Prices and items are placeholders pending final confirmation.</span>
     </p>
@@ -825,7 +945,7 @@
         <p class="price">¥9,500</p>
       </div>
     </div>
-    <p style="margin-top:24px;font-size:12px;color:var(--color-ink-soft);">
+    <p style="margin-top:24px;font-size:13px;color:var(--color-ink-soft);">
       <span class="ja">※ 接待・法要利用は2名様より要予約。</span>
       <span class="en">Reservation required for parties of 2 or more.</span>
     </p>
@@ -840,8 +960,8 @@
       <span class="en">Gallery</span>
     </h2>
     <div class="gallery-scroll">
-      <div class="placeholder-img has-photo reveal"><img src="gallery-counter.png.png" alt="カウンター席の様子 / Counter seating"></div>
-      <div class="placeholder-img has-photo reveal"><img src="gallery-noren.png.png" alt="店先の暖簾 / Noren entrance curtain"></div>
+      <div class="placeholder-img has-photo" data-reveal="clip" style="--i:0"><img src="gallery-counter.png.png" alt="カウンター席の様子 / Counter seating"></div>
+      <div class="placeholder-img has-photo" data-reveal="clip" style="--i:1"><img src="gallery-noren.png.png" alt="店先の暖簾 / Noren entrance curtain"></div>
     </div>
   </div>
 </section>
@@ -1020,14 +1140,14 @@
 <!-- ===== フッター ===== -->
 <footer>
   <div class="wrap">
-    <div class="brand" style="color:var(--color-washi);">蕎麦切り 凪 <span class="en" style="color:rgba(244,239,230,0.5);">Soba-kiri NAGI</span></div>
+    <div class="brand" style="color:var(--color-washi);">蕎麦切り 凪 <span class="en" style="color:var(--text-on-dark-soft);">Soba-kiri NAGI</span></div>
     <p><span class="ja">〇〇県〇〇市〇〇 1-2-3　TEL: 000-0000-0000</span></p>
     <div class="footer-links">
       <a href="#" aria-label="Instagram"><span class="ja">Instagram</span></a>
       <a href="#" aria-label="LINE">LINE</a>
       <a href="#reserve"><span class="ja">オンライン予約</span><span class="en">Reserve Online</span></a>
     </div>
-    <p style="opacity:0.5;">&copy; 2026 Soba-kiri NAGI. 本サイトは実演用見本です。</p>
+    <p>&copy; 2026 Soba-kiri NAGI. 本サイトは実演用見本です。</p>
   </div>
 </footer>
 
@@ -1044,6 +1164,52 @@
     document.body.classList.toggle('lang-en');
   });
 
+  // SPメニュー
+  (function(){
+    var btn = document.getElementById('menu-toggle');
+    var menu = document.getElementById('sp-menu');
+    if(!btn || !menu) return;
+    var mq = window.matchMedia('(min-width:1024px)');
+    function isEn(){ return document.body.classList.contains('lang-en'); }
+    function isOpen(){ return menu.classList.contains('is-open'); }
+    function updateLabel(){
+      var open = isOpen();
+      btn.setAttribute('aria-label', isEn() ? (open ? 'Close menu' : 'Open menu') : (open ? 'メニューを閉じる' : 'メニューを開く'));
+      menu.setAttribute('aria-label', isEn() ? 'Menu' : 'メニュー');
+    }
+    function setOpen(open, restoreFocus){
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      menu.classList.toggle('is-open', open);
+      document.body.classList.toggle('menu-open', open);
+      updateLabel();
+      if(open){
+        var first = menu.querySelector('a');
+        if(first) first.focus({preventScroll:true});
+      } else if(restoreFocus){
+        btn.focus();
+      }
+    }
+    btn.addEventListener('click', function(){ setOpen(!isOpen(), true); });
+    menu.addEventListener('click', function(e){
+      if(e.target.closest('a')) setOpen(false, true);
+    });
+    document.addEventListener('keydown', function(e){
+      if(!isOpen()) return;
+      if(e.key === 'Escape'){ setOpen(false, true); return; }
+      if(e.key !== 'Tab') return;
+      var f = [langBtn, document.querySelector('.header-actions .btn'), btn].filter(Boolean)
+        .concat([].slice.call(menu.querySelectorAll('a')));
+      var firstEl = f[0], lastEl = f[f.length - 1];
+      if(e.shiftKey && document.activeElement === firstEl){ e.preventDefault(); lastEl.focus(); }
+      else if(!e.shiftKey && document.activeElement === lastEl){ e.preventDefault(); firstEl.focus(); }
+    });
+    if(mq.addEventListener){
+      mq.addEventListener('change', function(m){ if(m.matches && isOpen()) setOpen(false, false); });
+    }
+    langBtn.addEventListener('click', updateLabel);
+    updateLabel();
+  })();
+
   // ヘッダー：スクロールでソリッド背景に切替
   var header = document.getElementById('site-header');
   function onScrollHeader(){
@@ -1057,11 +1223,12 @@
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(reduceMotion){ document.body.classList.add('reduce-motion'); }
 
-  var revealEls = document.querySelectorAll('.reveal');
+  var revealEls = document.querySelectorAll('.reveal, [data-reveal="clip"]');
   if('IntersectionObserver' in window){
     var io = new IntersectionObserver(function(entries){
       entries.forEach(function(entry, i){
         if(entry.isIntersecting){
+          if(entry.target.hasAttribute('data-reveal')){ entry.target.classList.add('is-visible'); io.unobserve(entry.target); return; }
           setTimeout(function(){ entry.target.classList.add('is-visible'); }, reduceMotion ? 0 : (i % 4) * 60);
           io.unobserve(entry.target);
         }
